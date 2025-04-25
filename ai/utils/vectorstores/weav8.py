@@ -173,8 +173,8 @@ if __name__ == '__main__':
             print(f"Chunk retrieved: {results[0]['properties']['text']}")    
         
         print("----Telugu Tests Completed.----")
-
-
+        
+        print("Deleting the collection after this unittest")
         coll_client.delete_collection()
     
     
