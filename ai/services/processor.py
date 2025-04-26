@@ -1,5 +1,5 @@
 import logging
-from ..schemas.messages import MLRequest, MLResponse
+from schemas.messages import MLRequest, MLResponse
 
 logger = logging.getLogger(__name__)
 

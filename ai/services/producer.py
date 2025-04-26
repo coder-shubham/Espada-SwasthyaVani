@@ -1,7 +1,7 @@
 from confluent_kafka import Producer
 import logging
-from ..schemas.messages import MLResponse, MLError
-from ..config.settings import app_settings
+from schemas.messages import MLResponse, MLError
+from config.settings import app_settings
 
 logger = logging.getLogger(__name__)
 
