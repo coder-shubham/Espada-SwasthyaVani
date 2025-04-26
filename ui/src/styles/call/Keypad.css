@@ -1,0 +1,28 @@
+  .keypad-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .keypad-button {
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: #e9ecef;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--box-shadow);
+  }
+  
+  .keypad-button:hover {
+    background-color: #dee2e6;
+  }
+  
+  .keypad-button:active {
+    transform: scale(0.95);
+  }
+

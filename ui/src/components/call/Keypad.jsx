@@ -1,4 +1,5 @@
 import React from 'react';
+import "../../styles/call/Keypad.css";
 
 const Keypad = ({ onKeyPress }) => {
   const buttons = [

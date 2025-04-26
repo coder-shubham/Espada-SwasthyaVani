@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './styles.css';
+import "../../styles/call/AudioVisualizer.css";
 
 const AudioVisualizer = ({ audioChunk }) => {
   const canvasRef = useRef(null);

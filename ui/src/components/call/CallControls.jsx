@@ -1,4 +1,5 @@
 import React from 'react';
+import "../../styles/call/CallControls.css";
 
 const CallControls = ({ isMuted, toggleMute, endCall }) => {
   return (

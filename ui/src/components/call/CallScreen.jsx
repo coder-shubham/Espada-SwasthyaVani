@@ -3,7 +3,7 @@ import CallControls from './CallControls';
 import Keypad from './Keypad';
 import AudioVisualizer from './AudioVisualizer';
 import useCall from '../../hooks/useCall';
-import './styles.css';
+import "../../styles/call/CallScreen.css";
 
 const CallScreen = () => {
   const {
