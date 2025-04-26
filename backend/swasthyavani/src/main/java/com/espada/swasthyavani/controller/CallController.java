@@ -71,7 +71,7 @@ public class CallController {
             System.out.println("With messageId: " + messageId);
             System.out.println("File size: " + audioBytes.length + " bytes");
 
-            String UPLOAD_DIR = "../tmp/userAudioData";
+            String UPLOAD_DIR = "../../tmp/userAudioData";
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
