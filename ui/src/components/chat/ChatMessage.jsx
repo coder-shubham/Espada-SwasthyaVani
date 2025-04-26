@@ -1,21 +1,29 @@
 import React from 'react';
 import { FaUser, FaRobot } from 'react-icons/fa';
-import '../../styles/chats/ChatMessage.css';
+import { FiPaperclip, FiAlertCircle } from 'react-icons/fi';
+import { format } from 'date-fns';
+import "../../styles/chats/ChatMessage.css";
 
 const ChatMessage = ({ message, isCustomer }) => {
   const getMessageContent = () => {
     switch (message.type) {
       case 'file':
         return (
-          <a href={message.url} target="_blank" rel="noopener noreferrer" className="message-file">
-            <span className="file-icon">📎</span> {message.text}
+          <a
+            href={message.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ds-message-file"
+          >
+            <FiPaperclip className="ds-file-icon" />
+            <span>{message.text}</span>
           </a>
         );
       case 'error':
         return (
-          <div className="error-content">
-            <span className="error-icon">⚠️</span>
-            {message.text}
+          <div className="ds-error-content">
+            <FiAlertCircle className="ds-error-icon" />
+            <span>{message.text}</span>
           </div>
         );
       default:
@@ -24,18 +32,21 @@ const ChatMessage = ({ message, isCustomer }) => {
   };
 
   return (
-    <div className={`message-wrapper ${isCustomer ? 'customer' : 'agent'}`}>
-      <div className="message-avatar">
-        {isCustomer ? <FaUser className="user-icon" /> : <FaRobot className="agent-icon" />}
+    <div className={`ds-message-wrapper ${isCustomer ? 'ds-customer' : 'ds-agent'}`}>
+      <div className="ds-message-avatar">
+        {isCustomer ? (
+          <FaUser className="ds-user-icon" />
+        ) : (
+          <FaRobot className="ds-agent-icon" />
+        )}
       </div>
-      <div className="message-content-wrapper">
-        <div className="message-sender">{isCustomer ? 'You' : 'Support Agent'}</div>
-        <div className={`message-content ${message.type}`}>{getMessageContent()}</div>
-        <div className="message-timestamp">
-          {new Date(message.timestamp).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+      <div className="ds-message-content-wrapper">
+        <div className="ds-message-sender">{isCustomer ? 'You' : 'Support'}</div>
+        <div className={`ds-message-content ${message.type}`}>
+          {getMessageContent()}
+        </div>
+        <div className="ds-message-timestamp">
+          {format(new Date(message.timestamp), 'h:mm a')}
         </div>
       </div>
     </div>

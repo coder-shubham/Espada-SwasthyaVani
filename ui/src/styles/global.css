@@ -28,9 +28,10 @@ body {
 }
 
 .app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
 }
 
 .app-header {
@@ -49,6 +50,7 @@ body {
   box-shadow: var(--box-shadow);
   padding: 20px;
   min-height: 500px;
+  flex-grow: 1;
 }
 
 .connection-status {
