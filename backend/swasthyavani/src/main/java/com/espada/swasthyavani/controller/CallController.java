@@ -123,7 +123,7 @@ public class CallController {
         }
     }
 
-    @RequestMapping(value = "/stop", method = RequestMethod.POST)
+    @RequestMapping(value = "/end", method = RequestMethod.POST)
     private ResponseEntity<?> stopCall() throws Exception {
 
         System.out.println("Stopping call with ID: " + CALL_ID);
