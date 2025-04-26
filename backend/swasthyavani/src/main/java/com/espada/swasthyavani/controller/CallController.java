@@ -123,28 +123,28 @@ public class CallController {
             List<String> chunks = AudioChunkUtil.chunkAudioFile(audioFile, 1024 * 4); // 4KB chunks
 
             for (String chunk : chunks) {
-//                Map<String, Object> messageData = Map.of(
-//                        "audioData", chunk,
-//                        "messageId", "messageId",
-//                        "requestMessageType", "audio",
-//                        "sender", "System",
-//                        "type", "audio",
-//                        "callId", CALL_ID,
-//                        "timestamp", System.currentTimeMillis()
-//                );
-
                 Map<String, Object> messageData = Map.of(
-                        "content", chunk,
-                        "request_id", messageId,
-                        "request_type", "audio",
-                        "user_id", CALL_ID
+                        "audioData", chunk,
+                        "messageId", "messageId",
+                        "requestMessageType", "audio",
+                        "sender", "System",
+                        "type", "audio",
+                        "callId", CALL_ID,
+                        "timestamp", System.currentTimeMillis()
                 );
 
-//                System.out.println("Sending message to callId: " + CALL_ID);
+//                Map<String, Object> messageData = Map.of(
+//                        "content", chunk,
+//                        "request_id", messageId,
+//                        "request_type", "audio",
+//                        "user_id", CALL_ID
+//                );
 
-//                messagingTemplate.convertAndSend(String.format("/topic/call-%s",CALL_ID), messageData);
+                System.out.println("Sending message to callId: " + CALL_ID);
 
-                messageProducer.sendMessage("ml-topic", objectMapper.writeValueAsString(messageData));
+                messagingTemplate.convertAndSend(String.format("/topic/call-%s",CALL_ID), messageData);
+
+//                messageProducer.sendMessage("ml-topic", objectMapper.writeValueAsString(messageData));
 
                 Thread.sleep(500); //Stream
             }
