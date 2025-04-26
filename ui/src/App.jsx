@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './styles/global.css';
 import ChatScreen from './components/chat/ChatScreen';
 import CallScreen from './components/call/CallScreen';
-import ToggleSwitch from './components/generic/ToggleSwitch';
+import Navbar from './components/generic/NavBar';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('sms');
@@ -10,14 +10,7 @@ const App = () => {
 
   return (
     <div className="app-container">
-      <header className="app-header">
-        <h1>Swasthyavani Portal</h1>
-        <ToggleSwitch
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          setCallActive={setCallActive}
-        />
-      </header>
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} setCallActive={setCallActive} />
 
       <main className="app-main">
         {activeTab === 'sms' ? (

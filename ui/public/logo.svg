@@ -1,0 +1,30 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="250" cy="250" r="240" fill="#f8fafc" />
+  
+  <circle cx="250" cy="250" r="230" fill="none" stroke="#e2e8f0" stroke-width="8" />
+  
+  <circle cx="250" cy="250" r="210" fill="url(#bgGradient)" />
+  
+  <rect x="200" y="125" width="100" height="190" rx="20" fill="#0f766e" />
+  <rect x="210" y="135" width="80" height="150" rx="10" fill="#ecfeff" />
+  <circle cx="250" cy="300" r="15" fill="#ecfeff" />
+  
+  <path d="M80,250 L140,250 L160,190 L180,310 L200,210 L225,290 L250,250 L275,290 L300,210 L320,310 L340,190 L360,250 L420,250" 
+        stroke="#06b6d4" stroke-width="10" fill="none" stroke-linecap="round" />
+  <path d="M100,250 L140,250 L160,200 L180,300 L200,220 L225,280 L250,250 L275,280 L300,220 L320,300 L340,200 L360,250 L400,250" 
+        stroke="#0e7490" stroke-width="6" fill="none" stroke-linecap="round" />
+  
+  <circle cx="250" cy="250" r="190" fill="none" stroke="#0891b220" stroke-width="10" filter="url(#glow)" />
+
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0f9ff" />
+      <stop offset="100%" stop-color="#e0f2fe" />
+    </linearGradient>
+    
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+</svg>
