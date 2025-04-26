@@ -52,7 +52,6 @@ public class MessageConsumer {
             ObjectMapper objectMapper = new ObjectMapper();
 
             Map<String, Object> messageMap = objectMapper.readValue(message, new TypeReference<Map<String, Object>>() {});
-            String callId = (String) messageMap.getOrDefault("callId", "");
 
             Map<String, Object> newMessageObject =
                     Map.of("audioData", messageMap.get("content"),
@@ -63,6 +62,8 @@ public class MessageConsumer {
                             "messageId", messageMap.get("request_id"),
                             "timestamp", System.currentTimeMillis());
 
+            String callId = (String) newMessageObject.getOrDefault("callId", "");
+            
             if(callId != null && !callId.isEmpty()) {
                 System.out.println("Sending to callId: " + callId + " message to WebSocket: " + newMessageObject);
                 messagingTemplate.convertAndSend(String.format("/topic/call-%s",callId), newMessageObject);
