@@ -43,7 +43,7 @@ export const sendAudioApi = async (audioBlob, messageId) => {
 };
 
 export const endCallApi = async () => {
-  const response = await fetch(`${API_BASE}/calls/end`, {
+  const response = await fetch(`${CALL_API_BASE}/end`, {
     method: 'POST',
   });
   return await response.json();
