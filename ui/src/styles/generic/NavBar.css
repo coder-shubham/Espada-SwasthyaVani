@@ -1,0 +1,61 @@
+.navbar {
+  background-color: var(--card-bg);
+  padding: 0.75rem 2rem;
+  box-shadow: var(--box-shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar-logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+}
+
+.navbar-title {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+:root {
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --hover-bg: #f8fafc;
+  --primary-color: #3b82f6;
+  --primary-light: #eff6ff;
+  --text-color: #1e293b;
+  --text-secondary: #64748b;
+  --light-text: #ffffff;
+  --border-radius: 0.5rem;
+  --transition: all 0.2s ease;
+  --box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --box-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --box-shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
