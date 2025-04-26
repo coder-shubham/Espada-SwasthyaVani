@@ -12,15 +12,15 @@ const useChat = () => {
   const broadcastTopic = `/topic/chat`;
 
   useEffect(() => {
-    let unsubscribeUser = () => {};
-    let unsubscribeBroadcast = () => {};
+    let unsubscribeUser = () => { };
+    let unsubscribeBroadcast = () => { };
 
     const initChat = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        await webSocketService.connect('http://localhost:8080/socket');
+        await webSocketService.connect('http://localhost:8090/socket');
 
         unsubscribeUser = webSocketService.subscribe(userDestination, (message) => {
           setMessages((prev) => [

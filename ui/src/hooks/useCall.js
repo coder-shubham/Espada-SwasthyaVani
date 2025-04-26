@@ -39,7 +39,7 @@ const useCall = () => {
 
       initializeMediaRecord();
 
-      await webSocketService.connect('http://localhost:8080/socket');
+      await webSocketService.connect('http://localhost:8090/socket');
 
       const { callId } = await startCallApi();
       callTopicRef.current = `/topic/call-${callId}`;

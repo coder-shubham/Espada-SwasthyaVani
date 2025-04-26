@@ -1,5 +1,5 @@
-const API_BASE = 'http://localhost:8080';
-const CALL_API_BASE = 'http://localhost:8080/api/calls';
+const API_BASE = 'http://localhost:8090';
+const CALL_API_BASE = 'http://localhost:8090/api/calls';
 
 export const sendMessageApi = async (message) => {
   const response = await fetch(`${API_BASE}/api/chat/message`, {
