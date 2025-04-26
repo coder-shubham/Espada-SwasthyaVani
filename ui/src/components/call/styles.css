@@ -135,7 +135,6 @@
     letter-spacing: 3px;
   }
 
-  /* Audio Visualizer Container */
   .audio-visualizer-container {
     display: flex;
     flex-direction: column;
@@ -144,7 +143,6 @@
     width: 100%;
   }
   
-  /* Canvas Styles */
   .audio-visualizer-canvas {
     width: 100%;
     max-width: 300px;
@@ -154,7 +152,6 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
   
-  /* Activity Label */
   .audio-activity-label {
     margin-top: 8px;
     font-size: 0.8rem;
@@ -174,7 +171,6 @@
     animation: pulse 2s infinite;
   }
 
-  /* Start Call Button */
   .start-call-button {
     padding: 15px 30px;
     background-color: #4a6fa5;

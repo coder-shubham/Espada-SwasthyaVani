@@ -1,4 +1,3 @@
-/* Chat Container */
 .chat-container {
     display: flex;
     flex-direction: column;
@@ -11,7 +10,6 @@
     overflow: hidden;
   }
   
-  /* Header */
   .chat-header {
     padding: 16px 20px;
     background-color: #4a6fa5;
@@ -58,7 +56,6 @@
     color: rgba(255, 255, 255, 0.8);
   }
   
-  /* Error Banner */
   .error-banner {
     padding: 8px 16px;
     background-color: #ffebee;
@@ -69,7 +66,6 @@
     font-size: 0.9rem;
   }
   
-  /* Messages Container */
   .messages-container {
     flex: 1;
     padding: 16px;
@@ -98,7 +94,6 @@
     height: 1px;
   }
   
-  /* Message Wrapper */
   .message-wrapper {
     display: flex;
     max-width: 80%;
@@ -113,7 +108,6 @@
     align-self: flex-start;
   }
   
-  /* Message Avatar */
   .message-avatar {
     width: 36px;
     height: 36px;
@@ -136,7 +130,6 @@
     font-size: 16px;
   }
   
-  /* Message Content */
   .message-content-wrapper {
     display: flex;
     flex-direction: column;
@@ -184,7 +177,6 @@
     color: #d32f2f;
   }
   
-  /* File Message */
   .message-file {
     display: inline-flex;
     align-items: center;
@@ -194,7 +186,6 @@
     border-bottom: 1px dotted currentColor;
   }
   
-  /* Timestamp */
   .message-timestamp {
     font-size: 0.7rem;
     color: #888;
@@ -209,14 +200,12 @@
     text-align: left;
   }
   
-  /* Input Container */
   .chat-input-container {
     padding: 16px;
     background-color: white;
     border-top: 1px solid #e0e0e0;
   }
 
-  /* Chat Input Form */
 .chat-input-form {
     width: 100%;
   }
@@ -250,7 +239,6 @@
     padding-right: 4px;
   }
   
-  /* File Button */
   .file-button {
     background: none;
     border: none;
@@ -278,7 +266,6 @@
     font-size: 18px;
   }
   
-  /* Send Button */
   .send-button {
     background-color: #4a6fa5;
     border: none;
