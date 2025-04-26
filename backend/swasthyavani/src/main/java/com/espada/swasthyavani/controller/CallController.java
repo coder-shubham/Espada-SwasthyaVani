@@ -24,7 +24,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.espada.swasthyavani.messaging.MessageProducer;
 import com.espada.swasthyavani.utils.AudioChunkUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Class Description goes here.
@@ -36,6 +38,9 @@ public class CallController {
 
     @Autowired
     public SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private MessageProducer messageProducer;
 
     private static String CALL_ID = "callId";
 
@@ -66,7 +71,7 @@ public class CallController {
             System.out.println("With messageId: " + messageId);
             System.out.println("File size: " + audioBytes.length + " bytes");
 
-            String UPLOAD_DIR = "./tmp/userAudioData";
+            String UPLOAD_DIR = "../tmp/userAudioData";
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
@@ -77,7 +82,20 @@ public class CallController {
 
             Files.write(filePath, audioFile.getBytes());
 
-            streamAudioFiles(messageId);
+            System.out.println("File saved at: " + filePath.toString());
+
+            Map<String, Object> messageData = Map.of(
+                    "content", filePath.toString(),
+                    "request_id", messageId,
+                    "request_type", "audio",
+                    "user_id", CALL_ID
+            );
+
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            messageProducer.sendMessage("ml-topic", objectMapper.writeValueAsString(messageData));
+
+//            streamAudioFiles(messageId);
 
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Failed to read audio file.");
@@ -99,22 +117,34 @@ public class CallController {
                 "audio/audio3.mp3"
         };
 
+        ObjectMapper objectMapper = new ObjectMapper();
+
         for (String audioFile : audioFiles) {
             List<String> chunks = AudioChunkUtil.chunkAudioFile(audioFile, 1024 * 4); // 4KB chunks
 
             for (String chunk : chunks) {
+//                Map<String, Object> messageData = Map.of(
+//                        "audioData", chunk,
+//                        "messageId", "messageId",
+//                        "requestMessageType", "audio",
+//                        "sender", "System",
+//                        "type", "audio",
+//                        "callId", CALL_ID,
+//                        "timestamp", System.currentTimeMillis()
+//                );
+
                 Map<String, Object> messageData = Map.of(
-                        "audioData", chunk,
-                        "messageId", "messageId",
-                        "requestMessageType", "audio",
-                        "sender", "System",
-                        "type", "audio",
-                        "timestamp", System.currentTimeMillis()
+                        "content", chunk,
+                        "request_id", messageId,
+                        "request_type", "audio",
+                        "user_id", CALL_ID
                 );
 
-                System.out.println("Sending message to callId: " + CALL_ID);
+//                System.out.println("Sending message to callId: " + CALL_ID);
 
-                messagingTemplate.convertAndSend(String.format("/topic/call-%s",CALL_ID), messageData);
+//                messagingTemplate.convertAndSend(String.format("/topic/call-%s",CALL_ID), messageData);
+
+                messageProducer.sendMessage("ml-topic", objectMapper.writeValueAsString(messageData));
 
                 Thread.sleep(500); //Stream
             }
