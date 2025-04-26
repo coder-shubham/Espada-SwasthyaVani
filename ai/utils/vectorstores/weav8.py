@@ -1,18 +1,20 @@
 import re
 import os
+import sys
 from weaviate.classes.query import MetadataQuery
 from weaviate.classes.query import Filter
 from weaviate.exceptions import WeaviateQueryError
-from sentence_transformers import SentenceTransformer
 
 from dotenv import load_dotenv
 load_dotenv()
 
+sys.path.append('.')
+from factory.config import FactoryConfig
 
 class WeaviateCollectionClient:
     
     def __init__(self, db_client, name, embeddings):
-        self.embeddings = embeddings
+        self.embeddings = FactoryConfig.embeddings
         self.name = name
         self.collection = None
         self.db_client = db_client
@@ -109,8 +111,8 @@ if __name__ == '__main__':
     
     weaviate_api_key = os.getenv('WEAVIATE_API_KEY')
     with weaviate.connect_to_local(auth_credentials=Auth.api_key(weaviate_api_key)) as client:
-        embeddings = SentenceTransformer('intfloat/multilingual-e5-large')
-        coll_client = WeaviateCollectionClient(db_client=client, name="test_collection", embeddings=embeddings)
+        embeddings = FactoryConfig.embeddings
+        coll_client = WeaviateCollectionClient(db_client=client, name="gov_schemes", embeddings=embeddings)
         coll_client.load_collection()
         
         knowledge_base_items = ['The government provides free treatment under the Ayushman Bharat scheme.', 
@@ -175,7 +177,7 @@ if __name__ == '__main__':
         print("----Telugu Tests Completed.----")
         
         print("Deleting the collection after this unittest")
-        coll_client.delete_collection()
+        # coll_client.delete_collection()
     
     
     
