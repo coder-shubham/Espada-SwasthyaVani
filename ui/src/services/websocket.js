@@ -46,7 +46,7 @@ class WebSocketService {
 
         onDisconnect: () => {
           console.log('STOMP disconnected');
-        }
+        },
       });
 
       this.client.activate();
@@ -58,18 +58,15 @@ class WebSocketService {
       throw new Error('STOMP client not connected');
     }
 
-    const subscription = this.client.subscribe(
-      destination,
-      (message) => {
-        try {
-          const parsedBody = JSON.parse(message.body);
-          console.log("Received Webhook Message: ", parsedBody);
-          callback(parsedBody);
-        } catch (error) {
-          console.error('Error parsing STOMP message:', error);
-        }
+    const subscription = this.client.subscribe(destination, (message) => {
+      try {
+        const parsedBody = JSON.parse(message.body);
+        console.log('Received Webhook Message: ', parsedBody);
+        callback(parsedBody);
+      } catch (error) {
+        console.error('Error parsing STOMP message:', error);
       }
-    );
+    });
 
     this.subscriptions[destination] = subscription;
     return () => this.unsubscribe(destination);
@@ -90,13 +87,13 @@ class WebSocketService {
     this.client.publish({
       destination,
       body: JSON.stringify(body),
-      headers
+      headers,
     });
   };
 
   disconnect = () => {
     if (this.client) {
-      Object.keys(this.subscriptions).forEach(dest => {
+      Object.keys(this.subscriptions).forEach((dest) => {
         this.unsubscribe(dest);
       });
 

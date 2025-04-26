@@ -2,17 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import ChatInput from './ChatInput';
 import ChatMessage from './ChatMessage';
 import useChat from '../../hooks/useChat';
-import './styles.css';
+import '../../styles/chats/ChatScreen.css';
 
 const ChatScreen = () => {
-  const {
-    messages,
-    sendMessage,
-    sendFile,
-    isConnected,
-    isLoading,
-    error
-  } = useChat();
+  const { messages, sendMessage, sendFile, isConnected, isLoading, error } = useChat();
 
   const messagesEndRef = useRef(null);
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './styles.css';
+import '../../styles/call/AudioVisualizer.css';
 
 const AudioVisualizer = ({ audioChunk }) => {
   const canvasRef = useRef(null);
@@ -124,15 +124,8 @@ const AudioVisualizer = ({ audioChunk }) => {
 
   return (
     <div className="audio-visualizer-container">
-      <canvas
-        ref={canvasRef}
-        width={300}
-        height={100}
-        className="audio-visualizer-canvas"
-      />
-      <div className="audio-activity-label">
-        {isActive ? 'Audio Active' : 'Audio Inactive'}
-      </div>
+      <canvas ref={canvasRef} width={300} height={100} className="audio-visualizer-canvas" />
+      <div className="audio-activity-label">{isActive ? 'Audio Active' : 'Audio Inactive'}</div>
     </div>
   );
 };

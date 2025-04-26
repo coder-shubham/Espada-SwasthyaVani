@@ -33,8 +33,8 @@ const useCall = () => {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
-        }
+          autoGainControl: true,
+        },
       });
 
       initializeMediaRecord();
@@ -110,7 +110,8 @@ const useCall = () => {
   };
 
   const processAudioQueue = useCallback(async () => {
-    if (audioQueueRef.current.length === 0 || !audioContextRef.current || isAudioPlayingRef.current) return;
+    if (audioQueueRef.current.length === 0 || !audioContextRef.current || isAudioPlayingRef.current)
+      return;
 
     try {
       isAudioPlayingRef.current = true;
@@ -123,7 +124,7 @@ const useCall = () => {
       setCurrentAudioChunk(audioData);
       const arrayBuffer = base64ToArrayBuffer(audioData);
       const buffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-      setCurrentAudioChunk(buffer)
+      setCurrentAudioChunk(buffer);
       const source = audioContextRef.current.createBufferSource();
       source.buffer = buffer;
       source.connect(audioContextRef.current.destination);
@@ -187,48 +188,49 @@ const useCall = () => {
     }, 10000);
 
     processAudioQueue();
-
-
   }, []);
 
   const startCustomerRecording = useCallback(() => {
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'recording') {
-      console.log('Recording: ', "discarded");
+      console.log('Recording: ', 'discarded');
       return;
     }
 
     recordedChunksRef.current = [];
     mediaRecorderRef.current.start(100);
     currentRecording.current = true;
-    console.log('Recording: ', "started");
+    console.log('Recording: ', 'started');
     setTimeout(() => {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording' && currentRecording.current) {
-        console.log('Recording: ', "send");
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state === 'recording' &&
+        currentRecording.current
+      ) {
+        console.log('Recording: ', 'send');
         stopAndSendRecording();
-        currentRecording.current = false
+        currentRecording.current = false;
       } else {
-        console.log('Recording: ', "not send");
+        console.log('Recording: ', 'not send');
       }
     }, 60000);
   }, []);
 
   const stopAndSendRecording = useCallback(async () => {
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state !== 'recording') {
-      console.log('Recording: ', "send recording discared");
+      console.log('Recording: ', 'send recording discared');
       return;
     }
 
     return new Promise((resolve) => {
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-        console.log('Recording: ', "sending recording");
+        console.log('Recording: ', 'sending recording');
         await sendAudioApi(audioBlob, currentMessageIdRef.current);
         resolve();
       };
 
       currentRecording.current = false;
       mediaRecorderRef.current.stop();
-
     });
   }, []);
 
@@ -245,7 +247,7 @@ const useCall = () => {
     if (audioTimeoutRef.current) clearTimeout(audioTimeoutRef.current);
 
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
     }
 
     if (activeAudioSourceRef.current) {
@@ -282,17 +284,14 @@ const useCall = () => {
 
   useEffect(() => {
     if (!audioStreamRef.current) {
-      console.log('MediaRecordRef', "Initialize Discard");
+      console.log('MediaRecordRef', 'Initialize Discard');
       return;
     }
     initializeMediaRecord();
-
   }, []);
 
-
   const initializeMediaRecord = useCallback(() => {
-
-    console.log('MediaRecordRef', "Initialize");
+    console.log('MediaRecordRef', 'Initialize');
     mediaRecorderRef.current = new MediaRecorder(audioStreamRef.current);
     mediaRecorderRef.current.ondataavailable = (event) => {
       if (event.data.size > 0) {
@@ -302,37 +301,41 @@ const useCall = () => {
 
     return () => {
       if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
       }
     };
-
   }, []);
 
-  const sendDTMF = useCallback(async (digit) => {
-    try {
-      //   setDtmfDigits(prev => prev + digit);
+  const sendDTMF = useCallback(
+    async (digit) => {
+      try {
+        //   setDtmfDigits(prev => prev + digit);
 
-      if (digit === '#' && mediaRecorderRef.current.state === 'recording' && currentRecording.current) {
-        stopAndSendRecording();
-      } else {
-        setDtmfDigits(digit);
+        if (
+          digit === '#' &&
+          mediaRecorderRef.current.state === 'recording' &&
+          currentRecording.current
+        ) {
+          stopAndSendRecording();
+        } else {
+          setDtmfDigits(digit);
 
-        // Send DTMF to server
-        await sendDTMFApi(digit, currentMessageIdRef.current);
+          // Send DTMF to server
+          await sendDTMFApi(digit, currentMessageIdRef.current);
+        }
 
+        // If # is pressed, end the call
+      } catch (error) {
+        console.error('Error sending DTMF:', error);
       }
-
-      // If # is pressed, end the call
-
-    } catch (error) {
-      console.error('Error sending DTMF:', error);
-    }
-  }, [endCall]);
+    },
+    [endCall],
+  );
 
   const toggleMute = useCallback(() => {
     if (audioStreamRef.current) {
       const audioTracks = audioStreamRef.current.getAudioTracks();
-      audioTracks.forEach(track => {
+      audioTracks.forEach((track) => {
         track.enabled = !track.enabled;
       });
       setIsMuted(!isMuted);
@@ -348,7 +351,7 @@ const useCall = () => {
     sendDTMF,
     callDuration,
     dtmfDigits,
-    currentAudioChunk
+    currentAudioChunk,
   };
 };
 

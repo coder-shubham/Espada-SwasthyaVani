@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../styles/global.css';
+import '../../styles/generic/ToggleSwitch.css';
 
 const ToggleSwitch = ({ activeTab, setActiveTab, setCallActive }) => {
   const handleTabChange = (tab) => {

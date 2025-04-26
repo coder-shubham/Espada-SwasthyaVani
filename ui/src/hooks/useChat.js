@@ -12,8 +12,8 @@ const useChat = () => {
   const broadcastTopic = `/topic/chat`;
 
   useEffect(() => {
-    let unsubscribeUser = () => { };
-    let unsubscribeBroadcast = () => { };
+    let unsubscribeUser = () => {};
+    let unsubscribeBroadcast = () => {};
 
     const initChat = async () => {
       try {
@@ -22,17 +22,17 @@ const useChat = () => {
 
         await webSocketService.connect('http://localhost:8080/socket');
 
-        unsubscribeUser = webSocketService.subscribe(
-          userDestination,
-          (message) => {
-            setMessages(prev => [...prev, {
+        unsubscribeUser = webSocketService.subscribe(userDestination, (message) => {
+          setMessages((prev) => [
+            ...prev,
+            {
               text: message.content,
               sender: message.sender,
               timestamp: message.timestamp,
-              type: 'text'
-            }]);
-          }
-        );
+              type: 'text',
+            },
+          ]);
+        });
 
         // Subscribe to broadcast topic
         // unsubscribeBroadcast = webSocketService.subscribe(
@@ -74,72 +74,82 @@ const useChat = () => {
         text: message,
         sender: 'user',
         timestamp: new Date().toISOString(),
-        type: 'text'
+        type: 'text',
       };
-      setMessages(prev => [...prev, userMessage]);
+      setMessages((prev) => [...prev, userMessage]);
 
       await sendMessageApi({
         content: message,
-        type: 'USER_MESSAGE'
+        type: 'USER_MESSAGE',
       });
-
     } catch (err) {
       console.error('Error sending message:', err);
-      setMessages(prev => prev.filter(msg => msg.text !== message));
+      setMessages((prev) => prev.filter((msg) => msg.text !== message));
       setError('Failed to send message');
 
-      setMessages(prev => [...prev, {
-        text: 'Failed to send message',
-        sender: 'system',
-        timestamp: new Date().toISOString(),
-        type: 'error'
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: 'Failed to send message',
+          sender: 'system',
+          timestamp: new Date().toISOString(),
+          type: 'error',
+        },
+      ]);
     }
   }, []);
 
   const sendFile = useCallback(async (file) => {
     try {
-      setMessages(prev => [...prev, {
-        text: `Uploading ${file.name}...`,
-        sender: 'user',
-        timestamp: new Date().toISOString(),
-        type: 'text'
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: `Uploading ${file.name}...`,
+          sender: 'user',
+          timestamp: new Date().toISOString(),
+          type: 'text',
+        },
+      ]);
 
       const response = await uploadFileApi(file);
 
-      setMessages(prev => [...prev, {
-        text: file.name,
-        sender: 'user',
-        timestamp: new Date().toISOString(),
-        type: 'file',
-        url: response.fileUrl,
-        metadata: response.metadata
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: file.name,
+          sender: 'user',
+          timestamp: new Date().toISOString(),
+          type: 'file',
+          url: response.fileUrl,
+          metadata: response.metadata,
+        },
+      ]);
 
       webSocketService.sendMessage('/app/chat/file', {
         fileName: file.name,
         fileUrl: response.fileUrl,
         sender: 'user',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     } catch (err) {
       console.error('Error uploading file:', err);
       setError('Failed to upload file');
 
-      setMessages(prev => [...prev, {
-        text: `Failed to upload ${file.name}`,
-        sender: 'system',
-        timestamp: new Date().toISOString(),
-        type: 'error'
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: `Failed to upload ${file.name}`,
+          sender: 'system',
+          timestamp: new Date().toISOString(),
+          type: 'error',
+        },
+      ]);
     }
   }, []);
 
   const endChat = useCallback(() => {
     webSocketService.sendMessage('/app/chat/end', {
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     webSocketService.disconnect();
     setIsConnected(false);
@@ -152,10 +162,8 @@ const useChat = () => {
     endChat,
     isConnected,
     isLoading,
-    error
+    error,
   };
 };
 
 export default useChat;
-
-

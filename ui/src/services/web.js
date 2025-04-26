@@ -45,7 +45,7 @@ class WebSocketService {
 
   handleIncomingMessage = (message) => {
     if (message.topic && this.subscribers[message.topic]) {
-      this.subscribers[message.topic].forEach(callback => {
+      this.subscribers[message.topic].forEach((callback) => {
         callback(message.payload);
       });
     } else if (!message.topic) {
@@ -56,7 +56,9 @@ class WebSocketService {
   handleReconnect = (url) => {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      console.log(
+        `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`,
+      );
       setTimeout(() => this.connect(url), this.reconnectInterval);
     } else {
       console.error('Max reconnection attempts reached');
@@ -78,10 +80,12 @@ class WebSocketService {
     this.subscribers[topic].push(callback);
 
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        action: 'subscribe',
-        topic,
-      }));
+      this.socket.send(
+        JSON.stringify({
+          action: 'subscribe',
+          topic,
+        }),
+      );
     } else {
       console.error('WebSocket is not subscribed');
     }
@@ -93,9 +97,7 @@ class WebSocketService {
 
   unsubscribe = (topic, callback) => {
     if (this.subscribers[topic]) {
-      this.subscribers[topic] = this.subscribers[topic].filter(
-        cb => cb !== callback
-      );
+      this.subscribers[topic] = this.subscribers[topic].filter((cb) => cb !== callback);
 
       if (this.subscribers[topic].length === 0) {
         delete this.subscribers[topic];
@@ -105,11 +107,13 @@ class WebSocketService {
 
   publish = (topic, payload) => {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        topic,
-        payload,
-        timestamp: new Date().toISOString()
-      }));
+      this.socket.send(
+        JSON.stringify({
+          topic,
+          payload,
+          timestamp: new Date().toISOString(),
+        }),
+      );
     } else {
       console.error('WebSocket is not connected');
     }

@@ -23,10 +23,7 @@ const App = () => {
         {activeTab === 'sms' ? (
           <ChatScreen />
         ) : (
-          < CallScreen
-            callActive={callActive}
-            setCallActive={setCallActive}
-          />
+          <CallScreen callActive={callActive} setCallActive={setCallActive} />
         )}
       </main>
     </div>

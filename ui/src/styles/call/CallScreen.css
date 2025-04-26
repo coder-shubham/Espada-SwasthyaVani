@@ -1,0 +1,63 @@
+.call-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.call-init-screen {
+  text-align: center;
+}
+
+.start-call-button {
+  padding: 15px 30px;
+  background-color: #4a6fa5;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(74, 111, 165, 0.3);
+  min-width: 180px;
+  text-align: center;
+}
+
+.start-call-button:hover {
+  background-color: #3a5a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(74, 111, 165, 0.4);
+}
+
+.start-call-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(74, 111, 165, 0.4);
+}
+
+.start-call-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.call-active-screen {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.call-timer {
+  font-family: monospace;
+  font-size: 18px;
+  margin: 0 15px;
+}
+
+.dtmf-display {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-family: monospace;
+  letter-spacing: 3px;
+}
