@@ -1,4 +1,3 @@
-// ChatScreen.js (updated)
 import React, { useEffect, useRef } from 'react';
 import ChatInput from './ChatInput';
 import ChatMessage from './ChatMessage';
