@@ -66,7 +66,7 @@ public class CallController {
             System.out.println("With messageId: " + messageId);
             System.out.println("File size: " + audioBytes.length + " bytes");
 
-            String UPLOAD_DIR = "/tmp/userAudioData";
+            String UPLOAD_DIR = "./tmp/userAudioData";
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
@@ -122,5 +122,17 @@ public class CallController {
             Thread.sleep(1000); //Pause
         }
     }
+
+    @RequestMapping(value = "/stop", method = RequestMethod.POST)
+    private ResponseEntity<?> stopCall() throws Exception {
+
+        System.out.println("Stopping call with ID: " + CALL_ID);
+
+        // Logic to stop the call
+
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("callId", CALL_ID));
+
+    }
+
 
 }
