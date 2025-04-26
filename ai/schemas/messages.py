@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from enum import Enum
 from typing import Optional, Dict, Any
 from datetime import datetime
+from dataclasses import dataclass
 
 
 class RequestType(str, Enum):
@@ -9,13 +10,14 @@ class RequestType(str, Enum):
     AUDIO = "audio"
 
 
-class MLRequest(BaseModel):
+@dataclass
+class MLRequest:
     request_id: str
     request_type: RequestType
     content: str
-    model: str
+    model: Optional[str] = None
     user_id: Optional[str] = None
-    timestamp: datetime = datetime.utcnow()
+    # timestamp: datetime = datetime.utcnow()
     metadata: Optional[Dict[str, Any]] = None
 
 
