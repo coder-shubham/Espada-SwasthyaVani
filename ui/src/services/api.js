@@ -31,7 +31,6 @@ export const startCallApi = async () => {
 };
 
 export const sendAudioApi = async (audioBlob, messageId) => {
-
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.webm');
   formData.append('messageId', messageId);
