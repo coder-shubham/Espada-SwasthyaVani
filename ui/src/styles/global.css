@@ -1,0 +1,122 @@
+:root {
+    --primary-color: #4a6fa5;
+    --secondary-color: #166088;
+    --accent-color: #4fc3f7;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --warning-color: #ff9800;
+    --text-color: #333;
+    --light-text: #f8f9fa;
+    --bg-color: #f5f7fa;
+    --card-bg: #ffffff;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+  
+  .app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .app-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .app-header h1 {
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+  }
+  
+  .toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+  }
+  
+  .toggle-btn {
+    padding: 12px 30px;
+    border: none;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .toggle-btn.active {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+  }
+  
+  .toggle-btn:not(.active):hover {
+    background-color: #e9ecef;
+  }
+  
+  .app-main {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 20px;
+    min-height: 500px;
+  }
+  
+  .connection-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  
+  .connection-status.connected {
+    background-color: var(--success-color);
+    color: white;
+  }
+  
+  .connection-status.disconnected {
+    background-color: var(--error-color);
+    color: white;
+  }
+  
+  .status-indicator {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+    color: white;
+  }
+  
+  .status-indicator.connecting {
+    background-color: var(--warning-color);
+  }
+  
+  .status-indicator.active {
+    background-color: var(--success-color);
+  }
+  
+  .status-indicator.ending, .status-indicator.error {
+    background-color: var(--error-color);
+  }
