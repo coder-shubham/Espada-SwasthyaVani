@@ -2,6 +2,7 @@ import sys
 import base64
 import io
 import soundfile as sf
+import os
 
 from schemas.messages import MLResponse, MLRequest
 
@@ -14,7 +15,6 @@ from utils.stt.whisper import speech_to_text
 from playsound3 import playsound
 
 import soundfile as sf
-
 
 
 def _prepare_context(results):
@@ -30,7 +30,8 @@ def _prepare_context(results):
 def text_stream(audio):
     text = speech_to_text(audio)
 
-    coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes', embeddings=FactoryConfig.embeddings)
+    coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
+                                           embeddings=FactoryConfig.embeddings)
     coll_client.load_collection()
     results = coll_client.query(query=text, top_k=2)
 
@@ -98,4 +99,4 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
 
 
 if __name__ == '__main__':
-    respond_back_in_audio('testaudio.mp3')
+# respond_back_in_audio('testaudio.mp3')
