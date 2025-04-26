@@ -85,7 +85,7 @@ public class CallController {
             System.out.println("File saved at: " + filePath.toString());
 
             Map<String, Object> messageData = Map.of(
-                    "content", filePath.toString(),
+                    "content", fileName,
                     "request_id", messageId,
                     "request_type", "audio",
                     "user_id", CALL_ID
