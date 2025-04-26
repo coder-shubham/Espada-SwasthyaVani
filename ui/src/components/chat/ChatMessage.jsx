@@ -1,6 +1,6 @@
 import React from 'react';
-import './styles.css';
 import { FaUser, FaRobot } from 'react-icons/fa';
+import "../../styles/chats/ChatMessage.css";
 
 const ChatMessage = ({ message, isCustomer }) => {
   const getMessageContent = () => {

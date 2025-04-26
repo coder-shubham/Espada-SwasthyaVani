@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FaPaperclip, FaPaperPlane } from 'react-icons/fa';
-import './styles.css';
+import "../../styles/chats/ChatInput.css";
 
 const ChatInput = ({ onSendMessage, onSendFile, disabled }) => {
   const [message, setMessage] = useState('');
