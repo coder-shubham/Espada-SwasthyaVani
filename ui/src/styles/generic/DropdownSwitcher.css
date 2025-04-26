@@ -1,49 +1,97 @@
 .dropdown-switcher {
   position: relative;
   display: inline-block;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .dropdown-button {
   background-color: var(--card-bg);
-  border: 1px solid #ccc;
-  padding: 10px 15px;
-  font-size: 16px;
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
   border-radius: var(--border-radius);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   transition: var(--transition);
+  color: var(--text-color);
+  font-weight: 500;
+  min-width: 100px;
+  justify-content: space-between;
 }
 
 .dropdown-button:hover {
-  background-color: #e9ecef;
+  background-color: var(--hover-bg);
+  border-color: var(--primary-color);
 }
 
-.arrow {
-  font-size: 12px;
+.dropdown-arrow {
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+  color: var(--text-secondary);
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 110%;
+  top: calc(100% + 0.5rem);
   left: 0;
   background: var(--card-bg);
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
+  box-shadow: var(--box-shadow-lg);
   overflow: hidden;
-  z-index: 10;
+  z-index: 100;
+  min-width: 100%;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .dropdown-item {
-  padding: 10px 15px;
+  padding: 0.75rem 1rem;
   cursor: pointer;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-color);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
 }
 
 .dropdown-item:hover {
-  background-color: var(--primary-color);
-  color: var(--light-text);
+  background-color: var(--hover-bg);
+  color: var(--primary-color);
 }
 
+.dropdown-item:hover .dropdown-icon {
+  color: var(--primary-color);
+}
+
+.dropdown-item.active {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.dropdown-item.active .dropdown-icon {
+  color: var(--primary-color);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
