@@ -93,7 +93,7 @@ public class CallController {
 
             ObjectMapper objectMapper = new ObjectMapper();
 
-            messageProducer.sendMessage("ml-topic", objectMapper.writeValueAsString(messageData));
+            sendAudioFileToAi(objectMapper.writeValueAsString(messageData));
 
 //            streamAudioFiles(messageId);
 
@@ -106,6 +106,11 @@ public class CallController {
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("callId", System.currentTimeMillis()));
 
+    }
+
+    @Async
+    public void sendAudioFileToAi(String messageData) throws Exception{
+        messageProducer.sendMessage("ml-topic", messageData);
     }
 
     @Async
