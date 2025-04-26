@@ -9,7 +9,6 @@ const AudioVisualizer = ({ audioChunk }) => {
   const analyserRef = useRef(null);
   const dataArrayRef = useRef(null);
 
-  // Initialize audio context and analyzer
   useEffect(() => {
     const initAudioContext = async () => {
       try {
@@ -40,13 +39,11 @@ const AudioVisualizer = ({ audioChunk }) => {
     };
   }, []);
 
-  // Process audio chunks when they arrive
   useEffect(() => {
     if (!audioChunk || !audioContextRef.current || !isActive) return;
 
     const processAudioChunk = async () => {
       try {
-        // Ensure the audioChunk is in the correct format
         let audioData;
         if (audioChunk instanceof Blob) {
           audioData = await blobToArrayBuffer(audioChunk);
@@ -68,7 +65,6 @@ const AudioVisualizer = ({ audioChunk }) => {
       }
     };
 
-    // Helper function to convert Blob to ArrayBuffer
     const blobToArrayBuffer = (blob) => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -81,7 +77,6 @@ const AudioVisualizer = ({ audioChunk }) => {
     processAudioChunk();
   }, [audioChunk, isActive]);
 
-  // Animation loop for visualization
   useEffect(() => {
     if (!isActive || !canvasRef.current) return;
 
@@ -106,7 +101,6 @@ const AudioVisualizer = ({ audioChunk }) => {
       for (let i = 0; i < dataArrayRef.current.length; i++) {
         const barHeight = (dataArrayRef.current[i] / 255) * HEIGHT;
 
-        // Create gradient for bars
         const gradient = canvasCtx.createLinearGradient(0, HEIGHT - barHeight, 0, HEIGHT);
         gradient.addColorStop(0, '#4a6fa5');
         gradient.addColorStop(0.7, '#3a5a8a');
