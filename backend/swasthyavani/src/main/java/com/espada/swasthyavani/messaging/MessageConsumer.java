@@ -5,6 +5,7 @@
 
 package com.espada.swasthyavani.messaging;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.espada.swasthyavani.config.ApplicationConfiguration;
@@ -36,7 +38,6 @@ import jakarta.annotation.PreDestroy;
 @Service
 public class MessageConsumer {
 
-
     @Autowired
     private ApplicationConfiguration applicationConfiguration;
 
@@ -45,6 +46,7 @@ public class MessageConsumer {
 
     private ExecutorService executorService;
 
+    private Map<String, KafkaMessagePayload> messageCache;
 
     public MessageConsumer() {
         executorService = null;
@@ -53,6 +55,7 @@ public class MessageConsumer {
     @PostConstruct
     public void init() throws Exception{
         executorService = Executors.newFixedThreadPool(10);
+        messageCache = new HashMap<>();
 
     }
 
@@ -76,6 +79,34 @@ public class MessageConsumer {
 
             payload.setSender(WebhookMessagePayload.SenderType.AI.getValue());
 
+            if(payload.getRequestType().equalsIgnoreCase(WebhookMessagePayload.RequestType.TEXT.getValue())){
+                KafkaMessagePayload cachePayload = messageCache.getOrDefault(payload.getMessageId(), null);
+
+                if(payload.isFinished()){
+                    if(cachePayload != null) {
+                        cachePayload.setContent(cachePayload.getContent() + "\n" + payload.getContent());
+                        payload = cachePayload;
+                        messageCache.remove(payload.getMessageId());
+
+                        System.out.println("Message is finished. Sending the message with messageId: " + payload.getMessageId());
+                    }
+
+                }else{
+                    if(cachePayload != null) {
+                        cachePayload.setContent(cachePayload.getContent() + "\n" + payload.getContent());
+                        cachePayload.setLastUpdateTime(System.currentTimeMillis());
+                        messageCache.put(payload.getMessageId(), cachePayload);
+                    }else{
+                        payload.setLastUpdateTime(System.currentTimeMillis());
+                        messageCache.put(payload.getMessageId(), payload);
+                    }
+
+                    System.out.println("Message is not finished yet. Caching the message with messageId: " + payload.getMessageId());
+                    return;
+                }
+
+            }
+
             if (payload.getCallId() != null) {
                 System.out.println("Submitting message for callId: " + payload.getCallId() + " to executor service");
                 executorService.submit(new MessageTask(messagingTemplate, payload));
@@ -85,6 +116,21 @@ public class MessageConsumer {
             System.out.println("Error in sending message to WebSocket: " + ex.getMessage());
         }
 
+    }
+
+    @Scheduled(fixedDelay = 10000)
+    public void cleanUpCache() {
+        System.out.println("Checking up finished message...");
+        for(Map.Entry<String, KafkaMessagePayload> entry : messageCache.entrySet()){
+            KafkaMessagePayload payload = entry.getValue();
+            long currentTime = System.currentTimeMillis();
+            if(currentTime - payload.getLastUpdateTime() > 10000){
+                System.out.println("Removing inactive message with messageId: " + payload.getMessageId());
+                System.out.println("Submitting message for callId: " + payload.getCallId() + " to executor service from Cleaning");
+                executorService.submit(new MessageTask(messagingTemplate, payload));
+                messageCache.remove(entry.getKey());
+            }
+        }
     }
 
     @PreDestroy

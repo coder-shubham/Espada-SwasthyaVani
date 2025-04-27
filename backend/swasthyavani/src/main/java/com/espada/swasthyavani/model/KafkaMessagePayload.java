@@ -38,9 +38,11 @@ public class KafkaMessagePayload {
     private String type;
     private String sender;
     private Object timestamp;
+    private boolean isFinished;
+    private transient long lastUpdateTime;
 
     public KafkaMessagePayload(String content, String requestType, String callId, String messageId,
-                               String language, String type, String sender, Object timestamp) {
+                               String language, String type, String sender, Object timestamp, boolean isFinished) {
         this.content = content;
         this.requestType = requestType;
         this.callId = callId;
@@ -49,6 +51,7 @@ public class KafkaMessagePayload {
         this.type = type;
         this.sender = sender;
         this.timestamp = timestamp;
+        this.isFinished = isFinished;
     }
 
     public long getTimestampInLong() {

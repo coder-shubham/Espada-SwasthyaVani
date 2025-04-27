@@ -66,6 +66,7 @@ public class ChatService {
         WebhookMessagePayload payload = new WebhookMessagePayload()
                 .setChatId(chatId)
                 .setContent(startMessage)
+                .setMessageId(String.valueOf(System.currentTimeMillis()))
                 .setType(WebhookMessagePayload.RequestType.TEXT.getValue())
                 .setSender(WebhookMessagePayload.SenderType.SYSTEM.getValue())
                 .setTimestamp(System.currentTimeMillis());
