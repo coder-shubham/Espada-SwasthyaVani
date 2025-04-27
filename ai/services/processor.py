@@ -1,6 +1,6 @@
 import logging
 from schemas.messages import MLRequest, MLResponse
-from pipeline.helpers.v1 import respond_back_in_audio_streaming
+from pipeline.helpers.v1 import respond_back_in_audio_streaming, get_text_response
 
 logger = logging.getLogger(__name__)
 
@@ -12,11 +12,10 @@ def process_request(request: MLRequest, producer) -> MLResponse:
         request_type = request.request_type
 
         if request_type == "audio":
-            collected_audio = respond_back_in_audio_streaming(request, producer)
-            result = {"audio_chunks_base64": collected_audio}
+            respond_back_in_audio_streaming(request, producer)
 
         elif request_type == "text":
-            result = process_audio_transcription(request)
+            get_text_response(request, producer)
 
         else:
             raise ValueError(f"Processor:: Unknown type: {request_type}")
