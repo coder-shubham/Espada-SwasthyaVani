@@ -4,9 +4,8 @@ import io
 import soundfile as sf
 import os
 
-from schemas.messages import MLResponse, MLRequest
-
 sys.path.append('.')
+from schemas.messages import MLResponse, MLRequest
 
 from factory.config import FactoryConfig
 from utils.vectorstores.weav8 import WeaviateCollectionClient
@@ -27,8 +26,13 @@ def _prepare_context(results):
     return context
 
 
-def text_stream(audio):
-    text = speech_to_text(audio)
+def text_stream(audio=None, message=None):
+    text = ''
+    if audio:
+        text = speech_to_text(audio)
+    
+    if message:
+        text = message
 
     coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
                                            embeddings=FactoryConfig.embeddings)
@@ -66,15 +70,12 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
     audio_path = "../tmp/userAudioData/" + request.content
     collected_chunks = []
 
-    with open(audio_path, 'rb') as f:
-        audio_file_data = f.read()
-
-    for txt_chunk in text_stream(audio_path):
+    for txt_chunk in text_stream(audio=audio_path):
         generator = FactoryConfig.tts_pipeline_hindi(txt_chunk, voice='af_heart')
-        # for i, (gs, ps, audio) in enumerate(generator):
-        #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
-        #     # playsound(f'temp_audio_{i}.wav')
-        #     os.remove(f'temp_audio_{i}.wav')
+    #     for i, (gs, ps, audio) in enumerate(generator):
+    #         sf.write(f'temp_audio_{i}.wav', audio, 24000)
+    #         playsound(f'temp_audio_{i}.wav')
+    #         os.remove(f'temp_audio_{i}.wav')
 
         for _, _, audio_data in generator:
             buffer = io.BytesIO()
@@ -95,3 +96,8 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
             producer.send_response(chunk_response)
 
     return collected_chunks
+
+
+if __name__ == "__main__":
+    for item in text_stream(message="आयुष्मान भारत के बारे में बताइए"):
+        print(item)
