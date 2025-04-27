@@ -1,7 +1,11 @@
 .dropdown-switcher {
   position: relative;
   display: inline-block;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 .dropdown-button {

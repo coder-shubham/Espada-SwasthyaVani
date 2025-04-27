@@ -28,10 +28,10 @@ body {
 }
 
 .app-container {
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .app-header {
@@ -45,11 +45,6 @@ body {
 }
 
 .app-main {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  padding: 20px;
-  min-height: 500px;
   flex-grow: 1;
 }
 

@@ -1,9 +1,14 @@
 import React from 'react';
 import { FiMenu } from 'react-icons/fi';
 import DropdownSwitcher from './DropdownSwitcher';
-import "../../styles/generic/NavBar.css";
+import '../../styles/generic/NavBar.css';
+import { FiWifi, FiWifiOff, FiAlertCircle } from 'react-icons/fi';
+import '../../styles/chats/ChatScreen.css';
 
-const Navbar = ({ activeTab, setActiveTab, setCallActive }) => {
+const Navbar = ({ activeTab, setActiveTab, setCallActive, chat }) => {
+  const { isConnected } = chat;
+
+  console.log('isConnected Status Check: ', isConnected);
   return (
     <header className="ds-navbar">
       <div className="ds-navbar-container">
@@ -20,6 +25,23 @@ const Navbar = ({ activeTab, setActiveTab, setCallActive }) => {
           <button className="ds-navbar-menu">
             <FiMenu className="ds-menu-icon" />
           </button>
+        </div>
+        <div className="ds-chat-status">
+          <span
+            className={`ds-status-indicator ${isConnected ? 'ds-connected' : 'ds-disconnected'}`}
+          >
+            {isConnected ? (
+              <>
+                <FiWifi className="ds-status-icon" />
+                <span>Connected</span>
+              </>
+            ) : (
+              <>
+                <FiWifiOff className="ds-status-icon" />
+                <span>Connecting...</span>
+              </>
+            )}
+          </span>
         </div>
       </div>
     </header>

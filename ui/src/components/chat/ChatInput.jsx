@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FiPaperclip, FiSend } from 'react-icons/fi';
-import "../../styles/chats/ChatInput.css";
+import '../../styles/chats/ChatInput.css';
 
 const ChatInput = ({ onSendMessage, onSendFile, disabled }) => {
   const [message, setMessage] = useState('');
@@ -51,11 +51,7 @@ const ChatInput = ({ onSendMessage, onSendFile, disabled }) => {
             />
           </button>
 
-          <button
-            type="submit"
-            className="ds-send-button"
-            disabled={!message.trim() || disabled}
-          >
+          <button type="submit" className="ds-send-button" disabled={!message.trim() || disabled}>
             <FiSend className="ds-send-icon" />
           </button>
         </div>

@@ -4,11 +4,13 @@ import ChatMessage from './ChatMessage';
 import useChat from '../../hooks/useChat';
 import { FiWifi, FiWifiOff, FiAlertCircle } from 'react-icons/fi';
 import { BsChatSquareText } from 'react-icons/bs';
-import "../../styles/chats/ChatScreen.css";
+import '../../styles/chats/ChatScreen.css';
 
-const ChatScreen = () => {
-  const { messages, sendMessage, sendFile, isConnected, isLoading, error } = useChat();
+const ChatScreen = ({ chat }) => {
+  const { messages, sendMessage, sendFile, isConnected, isLoading, error } = chat;
   const messagesEndRef = useRef(null);
+
+  console.log('Connection check inside ChatScreen: ', isConnected);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -16,25 +18,6 @@ const ChatScreen = () => {
 
   return (
     <div className="ds-chat-container">
-      <div className="ds-chat-header">
-        <div className="ds-chat-title">Support Assistant</div>
-        <div className="ds-chat-status">
-          <span className={`ds-status-indicator ${isConnected ? 'ds-connected' : 'ds-disconnected'}`}>
-            {isConnected ? (
-              <>
-                <FiWifi className="ds-status-icon" />
-                <span>Connected</span>
-              </>
-            ) : (
-              <>
-                <FiWifiOff className="ds-status-icon" />
-                <span>Connecting...</span>
-              </>
-            )}
-          </span>
-        </div>
-      </div>
-
       {error && (
         <div className="ds-error-banner">
           <FiAlertCircle className="ds-error-icon" />

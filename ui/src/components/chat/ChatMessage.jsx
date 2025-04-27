@@ -2,7 +2,7 @@ import React from 'react';
 import { FaUser, FaRobot } from 'react-icons/fa';
 import { FiPaperclip, FiAlertCircle } from 'react-icons/fi';
 import { format } from 'date-fns';
-import "../../styles/chats/ChatMessage.css";
+import '../../styles/chats/ChatMessage.css';
 
 const ChatMessage = ({ message, isCustomer }) => {
   const getMessageContent = () => {
@@ -34,20 +34,12 @@ const ChatMessage = ({ message, isCustomer }) => {
   return (
     <div className={`ds-message-wrapper ${isCustomer ? 'ds-customer' : 'ds-agent'}`}>
       <div className="ds-message-avatar">
-        {isCustomer ? (
-          <FaUser className="ds-user-icon" />
-        ) : (
-          <FaRobot className="ds-agent-icon" />
-        )}
+        {isCustomer ? <FaUser className="ds-user-icon" /> : <FaRobot className="ds-agent-icon" />}
       </div>
       <div className="ds-message-content-wrapper">
         <div className="ds-message-sender">{isCustomer ? 'You' : 'Support'}</div>
-        <div className={`ds-message-content ${message.type}`}>
-          {getMessageContent()}
-        </div>
-        <div className="ds-message-timestamp">
-          {format(new Date(message.timestamp), 'h:mm a')}
-        </div>
+        <div className={`ds-message-content ${message.type}`}>{getMessageContent()}</div>
+        <div className="ds-message-timestamp">{format(new Date(message.timestamp), 'h:mm a')}</div>
       </div>
     </div>
   );
