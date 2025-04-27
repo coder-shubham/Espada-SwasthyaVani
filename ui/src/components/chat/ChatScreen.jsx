@@ -10,8 +10,6 @@ const ChatScreen = ({ chat }) => {
   const { messages, sendMessage, sendFile, isConnected, isLoading, error } = chat;
   const messagesEndRef = useRef(null);
 
-  console.log('Connection check inside ChatScreen: ', isConnected);
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);

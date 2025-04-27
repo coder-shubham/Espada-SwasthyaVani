@@ -8,7 +8,6 @@ import '../../styles/chats/ChatScreen.css';
 const Navbar = ({ activeTab, setActiveTab, setCallActive, chat }) => {
   const { isConnected } = chat;
 
-  console.log('isConnected Status Check: ', isConnected);
   return (
     <header className="ds-navbar">
       <div className="ds-navbar-container">
