@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,14 +20,24 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.espada.swasthyavani.config.ApplicationConfiguration;
 import com.espada.swasthyavani.messaging.MessageProducer;
+import com.espada.swasthyavani.model.KafkaMessagePayload;
+import com.espada.swasthyavani.model.LanguageCode;
+import com.espada.swasthyavani.model.UserInfo;
+import com.espada.swasthyavani.model.WebhookMessagePayload;
+import com.espada.swasthyavani.service.CacheService;
+import com.espada.swasthyavani.service.CallService;
 import com.espada.swasthyavani.utils.AudioChunkUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.annotation.PostConstruct;
 
 /**
  * Class Description goes here.
@@ -36,67 +47,84 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequestMapping("/api/calls")
 public class CallController {
 
-    @Autowired
-    public SimpMessagingTemplate messagingTemplate;
+    private final ApplicationConfiguration applicationConfiguration;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final MessageProducer messageProducer;
+    private final CacheService cacheService;
+    private final CallService callService;
+
 
     @Autowired
-    private MessageProducer messageProducer;
+    public CallController(ApplicationConfiguration applicationConfiguration,
+                          SimpMessagingTemplate messagingTemplate,
+                          MessageProducer messageProducer,
+                          CacheService cacheService,
+                          CallService callService) {
+        this.applicationConfiguration = applicationConfiguration;
+        this.messagingTemplate = messagingTemplate;
+        this.cacheService = cacheService;
+        this.callService = callService;
+        this.messageProducer = messageProducer;
+    }
 
-    private static String CALL_ID = "callId";
+    String[] startAudioFiles = {
+            "audio/audio1.mp3",
+            "audio/audio2.mp3",
+            "audio/select_your_lang.mp3",
+            "audio/english_select.mp3",
+            "audio/hindi_select.mp3",
+            "audio/marathi_select.mp3",
+            "audio/telugu_select.mp3",
+    };
 
     @RequestMapping(value = "/start", method = RequestMethod.POST)
     private ResponseEntity<?> startCall() throws Exception {
 
-        CALL_ID = String.valueOf(System.currentTimeMillis());
+        String callId = String.valueOf(System.currentTimeMillis());
 
-        System.out.println("Starting call with ID: " + CALL_ID);
+        System.out.println("Starting call with ID: " + callId);
 
-        streamAudioFiles(String.valueOf(System.currentTimeMillis()));
+        startCallSession(callId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("callId", CALL_ID));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("callId", callId));
+
+    }
+
+
+    @RequestMapping(value = "/dtmf", method = RequestMethod.POST)
+    private ResponseEntity<?> callDtmfReceiveFromCustomer(@RequestBody Map<String, String> payload
+    ) {
+
+        try {
+            String digit = payload.get("digit");
+            String messageId = payload.get("messageId");
+            String callId = payload.get("callId");
+
+            System.out.println("Received DTMF: " + digit);
+            System.out.println("With messageId: " + messageId);
+
+            processDtmfRequest(digit, messageId, callId);
+
+            //TODO: Handle DTMF for other cases
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return ResponseEntity.status(500).body("Failed to process DTMF.");
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("callId", System.currentTimeMillis()));
 
     }
 
     @RequestMapping(value = "/audio", method = RequestMethod.POST)
     private ResponseEntity<?> callAudioReceiveFromCustomer(
             @RequestParam("audio") MultipartFile audioFile,
-            @RequestParam("messageId") String messageId
+            @RequestParam("messageId") String messageId,
+            @RequestParam("callId") String callId
     ) {
 
         try {
-            byte[] audioBytes = audioFile.getBytes();
-            String originalFilename = audioFile.getOriginalFilename();
-
-            System.out.println("Received audio file: " + originalFilename);
-            System.out.println("With messageId: " + messageId);
-            System.out.println("File size: " + audioBytes.length + " bytes");
-
-            String UPLOAD_DIR = "../../tmp/userAudioData";
-            File uploadDir = new File(UPLOAD_DIR);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-
-            String fileName = messageId + "_" + System.currentTimeMillis() + "_" + audioFile.getOriginalFilename();
-            Path filePath = Paths.get(UPLOAD_DIR, fileName);
-
-            Files.write(filePath, audioFile.getBytes());
-
-            System.out.println("File saved at: " + filePath.toString());
-
-            Map<String, Object> messageData = Map.of(
-                    "content", fileName,
-                    "request_id", messageId,
-                    "request_type", "audio",
-                    "user_id", CALL_ID
-            );
-
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            sendAudioFileToAi(objectMapper.writeValueAsString(messageData));
-
-//            streamAudioFiles(messageId);
-
+            processAudioRequest(audioFile, messageId, callId);
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Failed to read audio file.");
         } catch (Exception e) {
@@ -109,47 +137,75 @@ public class CallController {
     }
 
     @Async
-    public void sendAudioFileToAi(String messageData) throws Exception{
-        messageProducer.sendMessage("ml-topic", messageData);
+    public void startCallSession(String callId) throws Exception{
+        callService.startCallSession(callId);
     }
 
     @Async
-    public void streamAudioFiles(String messageId) throws Exception {
+    public void endCallSession(String callId) throws Exception{
+        callService.endCallSession(callId);
+    }
 
-        String[] audioFiles = {
-                "audio/audio1.mp3",
-                "audio/audio2.mp3",
-                "audio/audio3.mp3"
-        };
+    @Async
+    public void processDtmfRequest(String digit, String messageId, String callId) throws Exception{
+        callService.processDtmfRequest(digit, messageId, callId);
+    }
 
-        ObjectMapper objectMapper = new ObjectMapper();
+    @Async
+    public void processAudioRequest(MultipartFile audioFile, String messageId, String callId) throws Exception{
+        callService.processNewAudioMessage(audioFile, messageId, callId);
+    }
+
+    @Async
+    public void sendAudioFileToAi(String messageData) throws Exception{
+        messageProducer.sendMessage(applicationConfiguration.getProducerTopic(), messageData);
+    }
+
+
+    @Async
+    public void sendLanguageAudioIntro(LanguageCode languageCode, String callId) throws Exception {
+
+        switch (languageCode) {
+            case HINDI:
+                streamAudioFiles(new String[]{"audio/hindi_intro.mp3"}, WebhookMessagePayload.RequestType.AUDIO.getValue(),
+                        String.valueOf(System.currentTimeMillis()), callId);
+                break;
+            case MARATHI:
+                streamAudioFiles(new String[]{"audio/marathi_intro.mp3"}, WebhookMessagePayload.RequestType.AUDIO.getValue(),
+                        String.valueOf(System.currentTimeMillis()), callId);
+                break;
+            case TELUGU:
+                streamAudioFiles(new String[]{"audio/telugu_intro.mp3"}, WebhookMessagePayload.RequestType.AUDIO.getValue(),
+                        String.valueOf(System.currentTimeMillis()), callId);
+                break;
+            default:
+                streamAudioFiles(new String[]{"audio/english_intro.mp3"}, WebhookMessagePayload.RequestType.AUDIO.getValue(),
+                        String.valueOf(System.currentTimeMillis()), callId);
+        }
+
+
+    }
+
+    @Async
+    public void streamAudioFiles(String[] audioFiles, String requestType, String messageId, String callId) throws Exception {
 
         for (String audioFile : audioFiles) {
             List<String> chunks = AudioChunkUtil.chunkAudioFile(audioFile, 1024 * 4); // 4KB chunks
 
             for (String chunk : chunks) {
-                Map<String, Object> messageData = Map.of(
-                        "audioData", chunk,
-                        "messageId", "messageId",
-                        "requestMessageType", "audio",
-                        "sender", "System",
-                        "type", "audio",
-                        "callId", CALL_ID,
-                        "timestamp", System.currentTimeMillis()
-                );
 
-//                Map<String, Object> messageData = Map.of(
-//                        "content", chunk,
-//                        "request_id", messageId,
-//                        "request_type", "audio",
-//                        "user_id", CALL_ID
-//                );
+                WebhookMessagePayload payload = new WebhookMessagePayload()
+                        .setCallId(callId)
+                        .setMessageId(messageId)
+                        .setContent(chunk)
+                        .setRequestMessageType(requestType)
+                        .setType(requestType)
+                        .setSender(WebhookMessagePayload.SenderType.SYSTEM.getValue())
+                        .setTimestamp(System.currentTimeMillis());
 
-                System.out.println("Sending message to callId: " + CALL_ID);
+                System.out.println("Sending message to callId: " + callId);
 
-                messagingTemplate.convertAndSend(String.format("/topic/call-%s",CALL_ID), messageData);
-
-//                messageProducer.sendMessage("ml-topic", objectMapper.writeValueAsString(messageData));
+                messagingTemplate.convertAndSend(String.format("/topic/call-%s",callId), payload);
 
                 Thread.sleep(500); //Stream
             }
@@ -159,13 +215,16 @@ public class CallController {
     }
 
     @RequestMapping(value = "/end", method = RequestMethod.POST)
-    private ResponseEntity<?> stopCall() throws Exception {
+    private ResponseEntity<?> stopCall(@RequestBody Map<String, String> payload) throws Exception {
 
-        System.out.println("Stopping call with ID: " + CALL_ID);
+        String callId = payload.get("callId");
 
+        System.out.println("Stopping call with ID: " + callId);
+
+        endCallSession(callId);
         // Logic to stop the call
 
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("callId", CALL_ID));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("callId", callId));
 
     }
 

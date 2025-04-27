@@ -6,15 +6,26 @@
 package com.espada.swasthyavani.messaging;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import com.espada.swasthyavani.config.ApplicationConfiguration;
+import com.espada.swasthyavani.model.KafkaMessagePayload;
+import com.espada.swasthyavani.model.WebhookMessagePayload;
+import com.espada.swasthyavani.service.MessageTask;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Class Description goes here.
@@ -23,56 +34,57 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class MessageConsumer {
 
+
     @Autowired
-    public SimpMessagingTemplate messagingTemplate;
+    private ApplicationConfiguration applicationConfiguration;
 
-    @KafkaListener(topics = "backend-topic", groupId = "backend-group")
-    public void consumeMessage(String message) {
-        // Logic to consume message from Kafka topic
-        System.out.println("Consumed message: " + message);
+    private ExecutorService executorService;
 
-        Thread thread = new Thread(() -> {
-            try {
-                // Simulate some processing time
-                sendMessageToWebSocket(message);
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
 
-        thread.start();
+    public MessageConsumer() {
+        executorService = null;
+    }
+
+    @PostConstruct
+    public void init() throws Exception{
+        executorService = Executors.newFixedThreadPool(10);
 
     }
 
-    private void sendMessageToWebSocket(String message)  {
-        // Logic to send the consumed message to WebSocket
+    @KafkaListener(topics = "${swasthyavani.consumer.topic}", groupId = "${spring.kafka.consumer.group-id}")
+    public void consumeMessage(String message) {
+        System.out.println("Consumed message: " + message);
 
-        try{
+        processNewMessage(message);
+
+    }
+
+    private void processNewMessage(String message) {
+
+        try {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            Map<String, Object> messageMap = objectMapper.readValue(message, new TypeReference<Map<String, Object>>() {});
+            KafkaMessagePayload payload = objectMapper.convertValue(message, KafkaMessagePayload.class);
+            payload.setSender(WebhookMessagePayload.SenderType.AI.getValue());
 
-            Map<String, Object> newMessageObject =
-                    Map.of("audioData", messageMap.get("content"),
-                                "requestMessageType", messageMap.get("request_type"),
-                            "type", messageMap.get("request_type"),
-                            "sender", "System",
-                                "callId", messageMap.get("user_id"),
-                            "messageId", messageMap.get("request_id"),
-                            "timestamp", System.currentTimeMillis());
-
-            String callId = (String) newMessageObject.getOrDefault("callId", "");
-            
-            if(callId != null && !callId.isEmpty()) {
-                System.out.println("Sending to callId: " + callId + " message to WebSocket: " + newMessageObject);
-                messagingTemplate.convertAndSend(String.format("/topic/call-%s",callId), newMessageObject);
+            if (payload.getCallId() != null) {
+                System.out.println("Submitting message for callId: " + payload.getCallId() + " to executor service");
+                executorService.submit(new MessageTask(payload));
             }
-        }catch (Exception ex){
+
+        } catch (Exception ex) {
             System.out.println("Error in sending message to WebSocket: " + ex.getMessage());
         }
 
+    }
 
+    @PreDestroy
+    public void shutdown() throws InterruptedException {
+
+        if (executorService != null) {
+            executorService.shutdown();
+            executorService.awaitTermination(10000, TimeUnit.MILLISECONDS);
+        }
     }
 
 }

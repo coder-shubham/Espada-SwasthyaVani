@@ -3,3 +3,4 @@ tmp/
 tmp
 docker
 docker/
+.DS_Store

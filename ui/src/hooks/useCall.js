@@ -18,7 +18,9 @@ const useCall = () => {
   const callTimerRef = useRef(null);
   const audioTimeoutRef = useRef(null);
   const currentMessageIdRef = useRef(null);
+  const holdMusicSourceRef = useRef(null);
   const currentRecording = useRef(null);
+  const currentCallId = useRef(null);
   const isAudioPlayingRef = useRef(false);
 
   const callTopicRef = useRef(`/topic/call-${Date.now()}`);
@@ -42,6 +44,7 @@ const useCall = () => {
       await webSocketService.connect('http://localhost:8090/socket');
 
       const { callId } = await startCallApi();
+      currentCallId.current = callId;
       callTopicRef.current = `/topic/call-${callId}`;
 
       console.log('callId: ', callId);
@@ -81,7 +84,7 @@ const useCall = () => {
       currentMessageIdRef.current = message.messageId;
     }
 
-    audioQueueRef.current.push(message.audioData);
+    audioQueueRef.current.push(message.content);
 
     if (audioTimeoutRef.current) {
       clearTimeout(audioTimeoutRef.current);
@@ -99,6 +102,34 @@ const useCall = () => {
     processAudioQueue();
   }, []);
 
+  // Handle DTMF requests
+  const handleDtmfRequest = useCallback((message) => {
+    // Customer should press digits which will be handled by sendDTMF
+
+    // If this is a new audio message, clear previous chunks
+    if (message.messageId !== currentMessageIdRef.current) {
+      audioQueueRef.current = [];
+      currentMessageIdRef.current = message.messageId;
+    }
+
+    audioQueueRef.current.push(message.content);
+
+    if (audioTimeoutRef.current) {
+      clearTimeout(audioTimeoutRef.current);
+    }
+
+    // audioTimeoutRef.current = setTimeout(() => {
+    //   if (message.requestMessageType === 'audio') {
+    //     playBeepSound();
+    //     startCustomerRecording();
+    //   } else if (message.requestMessageType === 'dtmf-request') {
+    //     playBeepSound();
+    //   }
+    // }, 10000);
+
+    processAudioQueue();
+  }, []);
+
   const base64ToArrayBuffer = (base64) => {
     const binary = atob(base64);
     const len = binary.length;
@@ -112,6 +143,8 @@ const useCall = () => {
   const processAudioQueue = useCallback(async () => {
     if (audioQueueRef.current.length === 0 || !audioContextRef.current || isAudioPlayingRef.current)
       return;
+
+    stopHoldMusic();
 
     try {
       isAudioPlayingRef.current = true;
@@ -162,33 +195,6 @@ const useCall = () => {
     oscillator.stop(audioContextRef.current.currentTime + 0.5);
   }, []);
 
-  // Handle DTMF requests
-  const handleDtmfRequest = useCallback((message) => {
-    // Customer should press digits which will be handled by sendDTMF
-
-    // If this is a new audio message, clear previous chunks
-    if (message.messageId !== currentMessageIdRef.current) {
-      audioQueueRef.current = [];
-      currentMessageIdRef.current = message.messageId;
-    }
-
-    audioQueueRef.current.push(message.audioData);
-
-    if (audioTimeoutRef.current) {
-      clearTimeout(audioTimeoutRef.current);
-    }
-
-    audioTimeoutRef.current = setTimeout(() => {
-      if (message.requestMessageType === 'audio') {
-        playBeepSound();
-        startCustomerRecording();
-      } else if (message.requestMessageType === 'dtmf-request') {
-        playBeepSound();
-      }
-    }, 10000);
-
-    processAudioQueue();
-  }, []);
 
   const startCustomerRecording = useCallback(() => {
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'recording') {
@@ -215,6 +221,58 @@ const useCall = () => {
     }, 60000);
   }, []);
 
+  // Play hold music
+  // const playHoldMusic = useCallback(() => {
+  //   if (!audioContextRef.current) return;
+
+  //   // Create oscillator for simple hold music
+  //   const oscillator = audioContextRef.current.createOscillator();
+  //   const gainNode = audioContextRef.current.createGain();
+    
+  //   oscillator.type = 'sine';
+  //   oscillator.frequency.value = 440; // A4 note
+  //   gainNode.gain.value = 0.1; // Low volume
+    
+  //   oscillator.connect(gainNode);
+  //   gainNode.connect(audioContextRef.current.destination);
+    
+  //   oscillator.start();
+  //   holdMusicSourceRef.current = { oscillator, gainNode };
+  // }, []);
+
+  // // Stop hold music
+  // const stopHoldMusic = useCallback(() => {
+  //   if (holdMusicSourceRef.current) {
+  //     holdMusicSourceRef.current.oscillator.stop();
+  //     holdMusicSourceRef.current.gainNode.disconnect();
+  //     holdMusicSourceRef.current = null;
+  //   }
+  // }, []);
+
+  const playHoldMusic = useCallback(() => {
+    if (!audioContextRef.current) return;
+
+    const audioContext = audioContextRef.current;
+    const audioElement = new Audio('/hold_music.mp3');
+    audioElement.loop = true;
+    audioElement.crossOrigin = "anonymous";
+
+    const track = audioContext.createMediaElementSource(audioElement);
+    track.connect(audioContext.destination);
+
+    audioElement.play();
+
+    holdMusicSourceRef.current = { audioElement, track };
+  }, []);
+
+  const stopHoldMusic = useCallback(() => {
+    if (holdMusicSourceRef.current?.audioElement) {
+      holdMusicSourceRef.current.audioElement.pause();
+      holdMusicSourceRef.current.audioElement.currentTime = 0;
+      holdMusicSourceRef.current.track.disconnect();
+    }
+  }, []);
+
   const stopAndSendRecording = useCallback(async () => {
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state !== 'recording') {
       console.log('Recording: ', 'send recording discared');
@@ -224,8 +282,10 @@ const useCall = () => {
     return new Promise((resolve) => {
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+        const timestamp = Date.now();  
         console.log('Recording: ', 'sending recording');
-        await sendAudioApi(audioBlob, currentMessageIdRef.current);
+        currentMessageIdRef.current = timestamp.toString();
+        await sendAudioApi(audioBlob, currentMessageIdRef.current, currentCallId.current);
         resolve();
       };
 
@@ -266,7 +326,7 @@ const useCall = () => {
       setCallStatus('ending');
 
       await stopAndSendRecording();
-      await endCallApi();
+      await endCallApi(currentCallId.current);
 
       cleanupCallResources();
       setCallStatus('ended');
@@ -309,19 +369,22 @@ const useCall = () => {
   const sendDTMF = useCallback(
     async (digit) => {
       try {
-        //   setDtmfDigits(prev => prev + digit);
-
+          setDtmfDigits(prev => prev + digit);
         if (
-          digit === '#' &&
+          digit === '#' && mediaRecorderRef.current &&
           mediaRecorderRef.current.state === 'recording' &&
           currentRecording.current
         ) {
           stopAndSendRecording();
+          playHoldMusic();
         } else {
-          setDtmfDigits(digit);
+          // setDtmfDigits(digit);
 
+          const timestamp = Date.now();
+          currentMessageIdRef.current = timestamp.toString();
           // Send DTMF to server
-          await sendDTMFApi(digit, currentMessageIdRef.current);
+          playHoldMusic();
+          await sendDTMFApi(digit, currentMessageIdRef.current, currentCallId.current);
         }
 
         // If # is pressed, end the call

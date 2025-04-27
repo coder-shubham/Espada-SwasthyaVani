@@ -19,7 +19,9 @@ const ChatMessage = ({ message, isCustomer }) => {
           </div>
         );
       default:
-        return message.text;
+        // Handle message text with new lines
+        const formattedMessage = message.text.replace(/\n/g, '<br/>');
+        return <span dangerouslySetInnerHTML={{ __html: formattedMessage }} />;
     }
   };
 
