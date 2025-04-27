@@ -30,7 +30,7 @@ def text_stream(audio=None, message=None):
     text = ''
     if audio:
         text = speech_to_text(audio)
-    
+
     if message:
         text = message
 
@@ -68,14 +68,13 @@ def text_stream(audio=None, message=None):
 
 def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
     audio_path = "../tmp/userAudioData/" + request.content
-    collected_chunks = []
 
     for txt_chunk in text_stream(audio=audio_path):
         generator = FactoryConfig.tts_pipeline_hindi(txt_chunk, voice='af_heart')
-    #     for i, (gs, ps, audio) in enumerate(generator):
-    #         sf.write(f'temp_audio_{i}.wav', audio, 24000)
-    #         playsound(f'temp_audio_{i}.wav')
-    #         os.remove(f'temp_audio_{i}.wav')
+        #     for i, (gs, ps, audio) in enumerate(generator):
+        #         sf.write(f'temp_audio_{i}.wav', audio, 24000)
+        #         playsound(f'temp_audio_{i}.wav')
+        #         os.remove(f'temp_audio_{i}.wav')
 
         for _, _, audio_data in generator:
             buffer = io.BytesIO()
@@ -83,8 +82,6 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
             buffer.seek(0)
 
             audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-
-            collected_chunks.append(audio_base64)
 
             chunk_response = MLRequest(
                 request_id=request.request_id,
@@ -95,7 +92,19 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
 
             producer.send_response(chunk_response)
 
-    return collected_chunks
+
+def get_text_response(request: MLRequest, producer) -> list:
+    message = request.content
+
+    for ml_response in text_stream(message=message):
+        chunk_response = MLRequest(
+            request_id=request.request_id,
+            content=ml_response,
+            user_id=request.user_id,
+            request_type=request.request_type
+        )
+
+        producer.send_response(chunk_response)
 
 
 if __name__ == "__main__":
