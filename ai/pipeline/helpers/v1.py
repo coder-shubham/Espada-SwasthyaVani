@@ -123,7 +123,7 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
 def get_text_response(request: MLRequest, producer) -> list:
     message = request.content
 
-    for ml_response in text_stream(message=message):
+    for ml_response in text_stream(message=message, language=request.language):
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=ml_response,
