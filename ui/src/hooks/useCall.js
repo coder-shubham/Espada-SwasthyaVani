@@ -21,6 +21,7 @@ const useCall = () => {
   const holdMusicSourceRef = useRef(null);
   const currentRecording = useRef(null);
   const currentCallId = useRef(null);
+  const currentMessageType = useRef(null);
   const isAudioPlayingRef = useRef(false);
 
   const callTopicRef = useRef(`/topic/call-${Date.now()}`);
@@ -90,15 +91,7 @@ const useCall = () => {
       clearTimeout(audioTimeoutRef.current);
     }
 
-    audioTimeoutRef.current = setTimeout(() => {
-      if (message.requestMessageType === 'audio') {
-        playBeepSound();
-        startCustomerRecording();
-      } else if (message.requestMessageType === 'dtmf-request') {
-        playBeepSound();
-      }
-    }, 5000);
-
+    currentMessageType.current = message.requestMessageType;
     processAudioQueue();
   }, []);
 
@@ -127,6 +120,7 @@ const useCall = () => {
     //   }
     // }, 10000);
 
+    currentMessageType.current = message.requestMessageType;
     processAudioQueue();
   }, []);
 
@@ -169,6 +163,16 @@ const useCall = () => {
         isAudioPlayingRef.current = false;
         if (audioQueueRef.current.length > 0) {
           processAudioQueue();
+        }else{
+          audioTimeoutRef.current = setTimeout(() => {
+            if (currentMessageType.current === 'audio') {
+              playBeepSound();
+              startCustomerRecording();
+            } else if (currentMessageType.current === 'dtmf-request') {
+              console.log('dtmf', "request");
+              // playBeepSound();
+            }
+          }, 5000);
         }
       };
     } catch (error) {
