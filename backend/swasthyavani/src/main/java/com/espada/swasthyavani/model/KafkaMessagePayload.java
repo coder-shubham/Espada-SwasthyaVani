@@ -39,6 +39,17 @@ public class KafkaMessagePayload {
     private String sender;
     private Object timestamp;
 
+    public KafkaMessagePayload(String content, String requestType, String callId, String messageId,
+                               String language, String type, String sender, Object timestamp) {
+        this.content = content;
+        this.requestType = requestType;
+        this.callId = callId;
+        this.messageId = messageId;
+        this.language = language;
+        this.type = type;
+        this.sender = sender;
+        this.timestamp = timestamp;
+    }
 
     public long getTimestampInLong() {
 

@@ -22,6 +22,7 @@ import com.espada.swasthyavani.model.WebhookMessagePayload;
 import com.espada.swasthyavani.service.MessageTask;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
@@ -63,6 +64,8 @@ public class MessageConsumer {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
             KafkaMessagePayload payload = objectMapper.convertValue(message, KafkaMessagePayload.class);
             payload.setSender(WebhookMessagePayload.SenderType.AI.getValue());
