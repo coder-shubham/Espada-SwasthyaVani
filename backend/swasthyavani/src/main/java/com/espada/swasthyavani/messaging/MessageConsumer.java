@@ -23,6 +23,7 @@ import com.espada.swasthyavani.service.MessageTask;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
@@ -38,6 +39,9 @@ public class MessageConsumer {
 
     @Autowired
     private ApplicationConfiguration applicationConfiguration;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     private ExecutorService executorService;
 
@@ -67,12 +71,14 @@ public class MessageConsumer {
 
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-            KafkaMessagePayload payload = objectMapper.convertValue(message, KafkaMessagePayload.class);
+            JsonNode node = objectMapper.readTree(message);
+            KafkaMessagePayload payload = objectMapper.treeToValue(node, KafkaMessagePayload.class);
+
             payload.setSender(WebhookMessagePayload.SenderType.AI.getValue());
 
             if (payload.getCallId() != null) {
                 System.out.println("Submitting message for callId: " + payload.getCallId() + " to executor service");
-                executorService.submit(new MessageTask(payload));
+                executorService.submit(new MessageTask(messagingTemplate, payload));
             }
 
         } catch (Exception ex) {

@@ -21,18 +21,14 @@ import com.espada.swasthyavani.model.WebhookMessagePayload.SenderType;
  * Created by shubhamsarraf on 27/04/25
  */
 public class MessageTask implements Runnable{
-
-    @Autowired
-    public SimpMessagingTemplate messagingTemplate;
+    private SimpMessagingTemplate messagingTemplate;
 
     private KafkaMessagePayload kafkaMessagePayload;
 
     private static final ConcurrentHashMap<String, ReentrantLock> locks = new ConcurrentHashMap<>();
 
-    public MessageTask(){
-    }
-
-    public MessageTask(KafkaMessagePayload kafkaMessagePayload){
+    public MessageTask(SimpMessagingTemplate messagingTemplate, KafkaMessagePayload kafkaMessagePayload){
+        this.messagingTemplate = messagingTemplate;
         this.kafkaMessagePayload = kafkaMessagePayload;
     }
 
