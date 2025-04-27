@@ -64,7 +64,7 @@ public class CallService {
     }
 
 
-    public void startCallSession(String callId) throws Exception{
+    public void startCallSession(String callId) throws Exception {
 
         UserInfo userInfo = new UserInfo().setUserId(callId).setLanguage(null);
 
@@ -75,7 +75,7 @@ public class CallService {
 
     }
 
-    public void endCallSession(String callId) throws Exception{
+    public void endCallSession(String callId) throws Exception {
         System.out.println("Ending call session for callId: " + callId);
 
         cacheService.removeFromCache(callId);
@@ -125,7 +125,7 @@ public class CallService {
         String fileName = messageId + "_" + System.currentTimeMillis() + "_" + audioFile.getOriginalFilename();
         Path filePath = Paths.get(UPLOAD_DIR, fileName);
 
-        Files.write(filePath, audioFile.getBytes());
+        Files.write(filePath, audioBytes);
 
         System.out.println("File saved at: " + filePath.toString());
 
@@ -147,7 +147,7 @@ public class CallService {
 
     }
 
-    public void processDtmfRequest(String digit,String messageId, String callId) throws Exception{
+    public void processDtmfRequest(String digit, String messageId, String callId) throws Exception {
 
         Object object = cacheService.getFromCache(callId);
 
@@ -155,7 +155,7 @@ public class CallService {
 
         System.out.println("UserInfo: " + userInfo);
 
-        if(userInfo.getLanguage() == null || userInfo.getLanguage().isEmpty()) {
+        if (userInfo.getLanguage() == null || userInfo.getLanguage().isEmpty()) {
 
             LanguageCode languageCode = LanguageCode.fromCode(digit);
 
@@ -193,7 +193,7 @@ public class CallService {
 
                 System.out.println("Sending message to callId: " + callId);
 
-                messagingTemplate.convertAndSend(String.format("/topic/call-%s",callId), payload);
+                messagingTemplate.convertAndSend(String.format("/topic/call-%s", callId), payload);
 
                 Thread.sleep(500); //Stream
             }
@@ -201,8 +201,6 @@ public class CallService {
             Thread.sleep(1000); //Pause
         }
     }
-
-
 
 
 }

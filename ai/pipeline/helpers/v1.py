@@ -37,7 +37,8 @@ def text_stream(audio=None, message=None):
     coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
                                            embeddings=FactoryConfig.embeddings)
     coll_client.load_collection()
-    results = coll_client.query(query=text, top_k=2)
+    results = coll_client.query(query=text, top_k=5)
+    print("Result: ", results)
 
     messages = [
         FactoryConfig.llm.create_message(
@@ -87,7 +88,12 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
                 request_id=request.request_id,
                 content=audio_base64,
                 user_id=request.user_id,
-                request_type=request.request_type
+                request_type=request.request_type,
+                timestamp=request.timestamp,
+                timestampInLong=request.timestampInLong,
+                sender=request.sender,
+                language=request.language,
+                type=request.type
             )
 
             producer.send_response(chunk_response)
@@ -101,7 +107,12 @@ def get_text_response(request: MLRequest, producer) -> list:
             request_id=request.request_id,
             content=ml_response,
             user_id=request.user_id,
-            request_type=request.request_type
+            request_type=request.request_type,
+            timestamp=request.timestamp,
+            timestampInLong=request.timestampInLong,
+            sender=request.sender,
+            language=request.language,
+            type=request.type
         )
 
         producer.send_response(chunk_response)

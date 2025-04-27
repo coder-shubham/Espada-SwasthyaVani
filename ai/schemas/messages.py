@@ -16,10 +16,15 @@ class MLRequest:
     request_id: str
     request_type: RequestType
     content: str
+    language: str
+    sender: str
+    timestamp: int
+    timestampInLong: int
+    type: Optional[str] = None
     model: Optional[str] = None
     user_id: Optional[str] = None
-    # timestamp: datetime = datetime.utcnow()
     metadata: Optional[Dict[str, Any]] = None
+    isFinished: Optional[bool] = False
 
     def to_string(self) -> str:
         return json.dumps(asdict(self), default=str)
