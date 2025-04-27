@@ -8,7 +8,7 @@ sys.path.append('.')
 from schemas.messages import MLResponse, MLRequest
 
 from factory.config import FactoryConfig
-from factory.constants import ENGLISH, HINDI
+from factory.constants import ENGLISH, HINDI, LLAMA_33_70B_ID
 from utils.vectorstores.weav8 import WeaviateCollectionClient
 from utils.stt.whisper import speech_to_text
 
@@ -31,6 +31,57 @@ def _get_breakpoints(language=ENGLISH):
         return [',', '.', '?', '!']
     elif language == HINDI:
         return ['\u0970', '\u0964', ',', '.', '?']
+
+
+def _handle_local_llama_31_8b_call(messages, breakpoints, language=ENGLISH):
+    curr_chunk = str()
+    for i, chunk in enumerate(FactoryConfig.llm.stream_response(messages)):
+        curr_chunk += chunk.message.content
+        if any(item in curr_chunk for item in breakpoints):
+            curr_chunk = curr_chunk.replace('*', '')
+            if i == 0:
+                first_chunk = curr_chunk
+            elif i == 1:
+                yield first_chunk
+                yield curr_chunk
+            else:
+                yield curr_chunk
+            curr_chunk = str()
+        else:
+            pass
+
+    yield curr_chunk
+
+
+def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
+    completion = FactoryConfig.llama_33_70b_client.chat.completions.create(
+        model=LLAMA_33_70B_ID,
+        messages=messages,
+        temperature=0.0,
+        max_tokens=1024,
+        top_p=1,
+        frequency_penalty=0.1,
+        presence_penalty=1,
+        stream=True
+    )
+    curr_chunk = str()
+    for i, chunk in enumerate(completion):
+        if chunk.choices and chunk.choices[0].delta.content is not None:
+            curr_chunk += chunk.choices[0].delta.content
+            
+            if any(item in curr_chunk for item in breakpoints):
+                curr_chunk = curr_chunk.replace('*', '')
+                
+                if i == 0:
+                    first_chunk = curr_chunk
+                elif i == 1:
+                    yield first_chunk
+                    yield curr_chunk
+                else:
+                    yield curr_chunk
+                curr_chunk = str()
+    
+    yield curr_chunk
 
 
 def text_stream(audio=None, message=None, language=ENGLISH):
@@ -57,24 +108,12 @@ def text_stream(audio=None, message=None, language=ENGLISH):
     
     breakpoints = _get_breakpoints(language)
     
-    curr_chunk = str()
-    for i, chunk in enumerate(FactoryConfig.llm.stream_response(messages)):
-        curr_chunk += chunk.message.content
-        if any(item in curr_chunk for item in breakpoints):
-            if language == HINDI:
-                curr_chunk = curr_chunk.replace('*', '')
-            if i == 0:
-                first_chunk = curr_chunk
-            elif i == 1:
-                yield first_chunk
-                yield curr_chunk
-            else:
-                yield curr_chunk
-            curr_chunk = str()
-        else:
-            pass
-
-    yield curr_chunk
+    if FactoryConfig.production:
+        for txt_chunk in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints, language=language):
+            yield txt_chunk
+    else:
+        for txt_chunk in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints, language=language):
+            yield txt_chunk
 
     # def respond_back_in_audio(audio):
     #     for txt_chunk in text_stream(audio):
@@ -143,4 +182,4 @@ if __name__ == "__main__":
     for item in text_stream(message="आयुष्मान भारत के बारे में बताइए", language=HINDI):
         print(item)
     
-    audio_stream(audio_path='testaudio.mp3', language=HINDI)
+    # audio_stream(audio_path='testaudio.mp3', language=HINDI)

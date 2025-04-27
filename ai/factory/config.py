@@ -1,5 +1,6 @@
 import weaviate
 import os
+from openai import OpenAI
 from weaviate.classes.init import Auth
 from sentence_transformers import SentenceTransformer
 import torch
@@ -16,6 +17,8 @@ from factory.constants import HINDI, ENGLISH, MARATHI, TELUGU
 
 from factory.constants import WHISPER_LARGE_V3_MODEL_ID, WHISPER_PIPELINE
 from factory.constants import MULTILINGUAL_E5_MODEL_ID, LLAMA_31_8B_ID
+
+from factory.constants import CREDITS_CAN_BE_CONSUMED_NOW
 
 from kokoro import KPipeline
 
@@ -58,6 +61,8 @@ class FactoryConfig:
     tts_model = dict()
     whisper_lang_code = dict()
     language_name = dict()
+    production = False
+    llama_33_70b_client = None
 
 
 FactoryConfig.vector_db_client = _get_vector_db_client()
@@ -67,6 +72,11 @@ FactoryConfig.stt_pipe = _get_stt_pipe()
 FactoryConfig.tts_pipeline_english = KPipeline(repo_id=KOKORO_REPO_ID, lang_code=KOKORO_ENGLISH_CODE)
 FactoryConfig.tts_pipeline_hindi = KPipeline(repo_id=KOKORO_REPO_ID, lang_code=KOKORO_HINDI_CODE)
 
+
+if os.getenv('LLAMA_33_70B_BASE_URL') and os.getenv('LLAMA_33_70B_API_KEY') and os.getenv('PRODUCTION') and os.getenv('PRODUCTION').lower() == CREDITS_CAN_BE_CONSUMED_NOW.lower():
+    FactoryConfig.llama_33_70b_client = OpenAI(base_url=os.getenv('LLAMA_33_70B_BASE_URL')
+                                        ,api_key=os.getenv('LLAMA_33_70B_API_KEY'))
+    FactoryConfig.production = True
 
 # Telugu & Marathi pending for now, as no tts model integrated for these two.
 
