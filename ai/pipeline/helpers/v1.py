@@ -8,6 +8,7 @@ sys.path.append('.')
 from schemas.messages import MLResponse, MLRequest
 
 from factory.config import FactoryConfig
+from factory.constants import ENGLISH, HINDI
 from utils.vectorstores.weav8 import WeaviateCollectionClient
 from utils.stt.whisper import speech_to_text
 
@@ -25,34 +26,51 @@ def _prepare_context(results):
 
     return context
 
+def _get_breakpoints(language=ENGLISH):
+    if language == ENGLISH:
+        return [',', '.', '?', '!']
+    elif language == HINDI:
+        return ['\u0970', '\u0964', ',', '.', '?']
 
-def text_stream(audio=None, message=None):
-    text = ''
+
+def text_stream(audio=None, message=None, language=ENGLISH):
+    text = str()
     if audio:
-        text = speech_to_text(audio)
+        text = speech_to_text(audio, language=language)
+        print("Speech to Text Output: ", text)
 
     if message:
         text = message
 
     coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
-                                           embeddings=FactoryConfig.embeddings)
+            embeddings=FactoryConfig.embeddings)
     coll_client.load_collection()
     results = coll_client.query(query=text, top_k=5)
-    print("Result: ", results)
-
+    
     messages = [
         FactoryConfig.llm.create_message(
             role="system",
-            content="You are a helpful medical scheme assistant.  You answer concisely. You will be given a query and some context, whatever the language of the query is, respond the answer in that language only. You should not go beyond context, answer strictly from the provided context only.",
+            content=f"You are a helpful medical scheme assistant. You answer concisely in {FactoryConfig.language_name[language]} language only. You will be given a query and some context, whatever the language of the query is, respond the answer in {FactoryConfig.language_name[language]} language only. You should not go beyond context, answer strictly from the provided context only.",
         ),
-        FactoryConfig.llm.create_message(role="user", content=f"Query: {text}. Context: {_prepare_context(results)}"),
+        FactoryConfig.llm.create_message(role="user", content=f"Query: {text}. Context: {_prepare_context(results)}. Respond in {FactoryConfig.language_name[language]} language only"),
     ]
-    curr_chunk = ''
-    for chunk in FactoryConfig.llm.stream_response(messages):
+    
+    breakpoints = _get_breakpoints(language)
+    
+    curr_chunk = str()
+    for i, chunk in enumerate(FactoryConfig.llm.stream_response(messages)):
         curr_chunk += chunk.message.content
-        if any(item in curr_chunk for item in ['\u0970', '\u0964', ',', '.', '?']):
-            yield curr_chunk
-            curr_chunk = ''
+        if any(item in curr_chunk for item in breakpoints):
+            if language == HINDI:
+                curr_chunk = curr_chunk.replace('*', '')
+            if i == 0:
+                first_chunk = curr_chunk
+            elif i == 1:
+                yield first_chunk
+                yield curr_chunk
+            else:
+                yield curr_chunk
+            curr_chunk = str()
         else:
             pass
 
@@ -67,36 +85,39 @@ def text_stream(audio=None, message=None):
     #             os.remove(f'temp_audio_{i}.wav')
 
 
-def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
-    audio_path = "../tmp/userAudioData/" + request.content
 
-    for txt_chunk in text_stream(audio=audio_path):
-        generator = FactoryConfig.tts_pipeline_hindi(txt_chunk, voice='af_heart')
-        #     for i, (gs, ps, audio) in enumerate(generator):
-        #         sf.write(f'temp_audio_{i}.wav', audio, 24000)
-        #         playsound(f'temp_audio_{i}.wav')
-        #         os.remove(f'temp_audio_{i}.wav')
-
+def audio_stream(audio_path, language=ENGLISH):
+    for txt_chunk in text_stream(audio=audio_path, language=language):
+        generator = FactoryConfig.tts_model[language](txt_chunk, voice='af_heart')
+        # for i, (gs, ps, audio) in enumerate(generator):
+        #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
+        #     playsound(f'temp_audio_{i}.wav')
+        #     os.remove(f'temp_audio_{i}.wav')
         for _, _, audio_data in generator:
             buffer = io.BytesIO()
             sf.write(buffer, audio_data, 24000, format='WAV')
             buffer.seek(0)
-
             audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+            yield audio_base64
 
-            chunk_response = MLRequest(
-                request_id=request.request_id,
-                content=audio_base64,
-                user_id=request.user_id,
-                request_type=request.request_type,
-                timestamp=request.timestamp,
-                timestampInLong=request.timestampInLong,
-                sender=request.sender,
-                language=request.language,
-                type=request.type
-            )
 
-            producer.send_response(chunk_response)
+
+def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
+    audio_path = "../tmp/userAudioData/" + request.content
+    
+    for base_64_chunk in audio_stream(audio_path=audio_path, language=request.language):
+        chunk_response = MLRequest(
+            request_id=request.request_id,
+            content=base_64_chunk,
+            user_id=request.user_id,
+            request_type=request.request_type,
+            timestamp=request.timestamp,
+            timestampInLong=request.timestampInLong,
+            sender=request.sender,
+            language=request.language,
+            type=request.type
+        )
+        producer.send_response(chunk_response)
 
 
 def get_text_response(request: MLRequest, producer) -> list:
@@ -119,5 +140,7 @@ def get_text_response(request: MLRequest, producer) -> list:
 
 
 if __name__ == "__main__":
-    for item in text_stream(message="आयुष्मान भारत के बारे में बताइए"):
+    for item in text_stream(message="आयुष्मान भारत के बारे में बताइए", language=HINDI):
         print(item)
+    
+    audio_stream(audio_path='testaudio.mp3', language=HINDI)
