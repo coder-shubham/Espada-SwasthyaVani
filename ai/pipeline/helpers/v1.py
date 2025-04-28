@@ -35,26 +35,26 @@ def _get_breakpoints(language=ENGLISH):
 
 def _handle_local_llama_31_8b_call(messages, breakpoints, language=ENGLISH):
     curr_chunk = str()
-    for i, chunk in enumerate(FactoryConfig.llm.stream_response(messages)):
+    iterable = FactoryConfig.llm.stream_response(messages)
+    last = None
+    
+    for chunk in iterable:
         curr_chunk += chunk.message.content
         if any(item in curr_chunk for item in breakpoints):
             curr_chunk = curr_chunk.replace('*', '')
-            if i == 0:
-                first_chunk = curr_chunk
-            elif i == 1:
-                yield first_chunk
-                yield curr_chunk
+            if not last:
+                pass
             else:
-                yield curr_chunk
+                yield last, False
+            last = curr_chunk
             curr_chunk = str()
-        else:
-            pass
-
-    yield curr_chunk
+    
+    yield curr_chunk, True
 
 
 def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
-    completion = FactoryConfig.llama_33_70b_client.chat.completions.create(
+    curr_chunk = str()
+    iterable = FactoryConfig.llama_33_70b_client.chat.completions.create(
         model=LLAMA_33_70B_ID,
         messages=messages,
         temperature=0.0,
@@ -64,24 +64,22 @@ def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
         presence_penalty=1,
         stream=True
     )
-    curr_chunk = str()
-    for i, chunk in enumerate(completion):
+    last = None
+    
+    for chunk in iterable:
         if chunk.choices and chunk.choices[0].delta.content is not None:
             curr_chunk += chunk.choices[0].delta.content
             
             if any(item in curr_chunk for item in breakpoints):
                 curr_chunk = curr_chunk.replace('*', '')
-                
-                if i == 0:
-                    first_chunk = curr_chunk
-                elif i == 1:
-                    yield first_chunk
-                    yield curr_chunk
+                if not last:
+                    pass
                 else:
-                    yield curr_chunk
+                    yield last, False
+                last = curr_chunk
                 curr_chunk = str()
     
-    yield curr_chunk
+    yield curr_chunk, True
 
 
 def text_stream(audio=None, message=None, language=ENGLISH):
@@ -109,42 +107,35 @@ def text_stream(audio=None, message=None, language=ENGLISH):
     breakpoints = _get_breakpoints(language)
     
     if FactoryConfig.production:
-        for txt_chunk in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints, language=language):
-            yield txt_chunk
+        for txt_chunk, is_finished in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints, language=language):
+            yield txt_chunk, is_finished
     else:
-        for txt_chunk in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints, language=language):
-            yield txt_chunk
-
-    # def respond_back_in_audio(audio):
-    #     for txt_chunk in text_stream(audio):
-    #         generator = FactoryConfig.tts_pipeline_hindi(txt_chunk, voice='af_heart')
-    #         for i, (gs, ps, audio) in enumerate(generator):
-    #             sf.write(f'temp_audio_{i}.wav', audio, 24000)
-    #             playsound(f'temp_audio_{i}.wav')
-    #             os.remove(f'temp_audio_{i}.wav')
+        for txt_chunk, is_finished in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints, language=language):
+            yield txt_chunk, is_finished
 
 
 
 def audio_stream(audio_path, language=ENGLISH):
-    for txt_chunk in text_stream(audio=audio_path, language=language):
+    for txt_chunk, is_finished in text_stream(audio=audio_path, language=language):
         generator = FactoryConfig.tts_model[language](txt_chunk, voice='af_heart')
         # for i, (gs, ps, audio) in enumerate(generator):
         #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
         #     playsound(f'temp_audio_{i}.wav')
         #     os.remove(f'temp_audio_{i}.wav')
+        #     print(is_finished)
         for _, _, audio_data in generator:
             buffer = io.BytesIO()
             sf.write(buffer, audio_data, 24000, format='WAV')
             buffer.seek(0)
             audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-            yield audio_base64
+            yield audio_base64, is_finished
 
 
 
 def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
     audio_path = "../tmp/userAudioData/" + request.content
     
-    for base_64_chunk in audio_stream(audio_path=audio_path, language=request.language):
+    for base_64_chunk, is_finished in audio_stream(audio_path=audio_path, language=request.language):
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=base_64_chunk,
@@ -154,7 +145,8 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
             timestampInLong=request.timestampInLong,
             sender=request.sender,
             language=request.language,
-            type=request.type
+            type=request.type,
+            isFinished=is_finished
         )
         producer.send_response(chunk_response)
 
@@ -162,7 +154,7 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
 def get_text_response(request: MLRequest, producer) -> list:
     message = request.content
 
-    for ml_response in text_stream(message=message, language=request.language):
+    for ml_response, is_finished in text_stream(message=message, language=request.language):
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=ml_response,
@@ -172,14 +164,16 @@ def get_text_response(request: MLRequest, producer) -> list:
             timestampInLong=request.timestampInLong,
             sender=request.sender,
             language=request.language,
-            type=request.type
+            type=request.type,
+            isFinished=is_finished
         )
 
         producer.send_response(chunk_response)
 
 
 if __name__ == "__main__":
-    for item in text_stream(message="आयुष्मान भारत के बारे में बताइए", language=HINDI):
-        print(item)
+    pass
+    # for item, is_finished in text_stream(message="आयुष्मान भारत के बारे में बताइए", language=HINDI):
+    #     print(item, is_finished)
     
     # audio_stream(audio_path='testaudio.mp3', language=HINDI)
