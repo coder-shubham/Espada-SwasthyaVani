@@ -24,7 +24,9 @@ class MLRequest:
     model: Optional[str] = None
     user_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    isFinished: Optional[bool] = False
+    is_finished: Optional[bool] = False
+    finished: Optional[bool] = False
+    lastUpdateTime: Optional[int] = None
 
     def to_string(self) -> str:
         return json.dumps(asdict(self), default=str)
