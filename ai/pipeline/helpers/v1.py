@@ -50,6 +50,19 @@ def _handle_local_llama_31_8b_call(messages, breakpoints, language=ENGLISH):
             curr_chunk = str()
     
     yield curr_chunk, True
+    
+def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLISH):
+    response = FactoryConfig.llama_33_70b_client.chat.completions.create(
+        model=LLAMA_33_70B_ID,
+        messages=messages,
+        temperature=0.0,
+        max_tokens=1024,
+        top_p=1,
+        frequency_penalty=0.1,
+        presence_penalty=1
+    )
+    print(response) # last here
+    return response.choices[0].message.content, True if response.choices and response.choices[0].message else {}, True
 
 
 def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
