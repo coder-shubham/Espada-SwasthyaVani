@@ -82,7 +82,7 @@ public class MessageConsumer {
             if(payload.getRequestType().equalsIgnoreCase(WebhookMessagePayload.RequestType.TEXT.getValue())){
                 KafkaMessagePayload cachePayload = messageCache.getOrDefault(payload.getMessageId(), null);
 
-                if(payload.isFinished()){
+                if(payload.getIsFinished()){
                     if(cachePayload != null) {
                         cachePayload.setContent(cachePayload.getContent() + "\n" + payload.getContent());
                         payload = cachePayload;

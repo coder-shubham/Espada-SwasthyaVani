@@ -38,11 +38,12 @@ public class KafkaMessagePayload {
     private String type;
     private String sender;
     private Object timestamp;
-    private boolean isFinished;
+    @JsonProperty("isFinished")
+    private Boolean isFinished;
     private transient long lastUpdateTime;
 
     public KafkaMessagePayload(String content, String requestType, String callId, String messageId,
-                               String language, String type, String sender, Object timestamp, boolean isFinished) {
+                               String language, String type, String sender, Object timestamp, Boolean isFinished) {
         this.content = content;
         this.requestType = requestType;
         this.callId = callId;

@@ -4,3 +4,5 @@ tmp
 docker
 docker/
 .DS_Store
+.swp
+*.swp

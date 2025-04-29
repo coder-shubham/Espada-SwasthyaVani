@@ -24,7 +24,7 @@ class MLRequest:
     model: Optional[str] = None
     user_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    is_finished: Optional[bool] = False
+    isFinished: Optional[bool] = False
     finished: Optional[bool] = False
     lastUpdateTime: Optional[int] = None
 
