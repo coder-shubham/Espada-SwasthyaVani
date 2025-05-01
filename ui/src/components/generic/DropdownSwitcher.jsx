@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import "../../styles/generic/DropdownSwitcher.css";
+import '../../styles/generic/DropdownSwitcher.css';
 import { RiArrowDownSLine, RiArrowUpSLine, RiMessage2Line, RiPhoneLine } from 'react-icons/ri';
 
 const DropdownSwitcher = ({ activeTab, setActiveTab, setCallActive }) => {
@@ -30,9 +30,7 @@ const DropdownSwitcher = ({ activeTab, setActiveTab, setCallActive }) => {
             <span>Call</span>
           </>
         )}
-        <span className="dropdown-arrow">
-          {open ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
-        </span>
+        <span className="dropdown-arrow">{open ? <RiArrowUpSLine /> : <RiArrowDownSLine />}</span>
       </button>
       {open && (
         <div className="dropdown-menu" role="listbox">

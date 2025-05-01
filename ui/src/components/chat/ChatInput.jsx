@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { FaPaperclip, FaPaperPlane } from 'react-icons/fa';
+import { FiPaperclip, FiSend } from 'react-icons/fi';
 import '../../styles/chats/ChatInput.css';
 
 const ChatInput = ({ onSendMessage, onSendFile, disabled }) => {
@@ -23,25 +23,25 @@ const ChatInput = ({ onSendMessage, onSendFile, disabled }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="chat-input-form">
-      <div className="input-wrapper">
+    <form onSubmit={handleSubmit} className="ds-chat-input-form">
+      <div className="ds-input-wrapper">
         <input
           type="text"
-          className="chat-input"
+          className="ds-chat-input"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type your message..."
           disabled={disabled}
         />
 
-        <div className="input-actions">
+        <div className="ds-input-actions">
           <button
             type="button"
-            className="file-button"
+            className="ds-file-button"
             onClick={() => fileInputRef.current.click()}
             disabled={disabled}
           >
-            <FaPaperclip className="file-icon" />
+            <FiPaperclip className="ds-file-icon" />
             <input
               type="file"
               ref={fileInputRef}
@@ -51,8 +51,8 @@ const ChatInput = ({ onSendMessage, onSendFile, disabled }) => {
             />
           </button>
 
-          <button type="submit" className="send-button" disabled={!message.trim() || disabled}>
-            <FaPaperPlane className="send-icon" />
+          <button type="submit" className="ds-send-button" disabled={!message.trim() || disabled}>
+            <FiSend className="ds-send-icon" />
           </button>
         </div>
       </div>

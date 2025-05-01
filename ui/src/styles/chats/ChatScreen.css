@@ -1,115 +1,128 @@
-.chat-container {
+.ds-chat-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  background-color: #f5f7fb;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #e6e6e6;
   overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  position: relative;
 }
 
-.chat-header {
-  padding: 16px 20px;
-  background-color: #4a6fa5;
-  color: white;
+.ds-messages-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: 85px;
+}
+
+.ds-messages-container {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: rgba(10, 10, 20, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ds-chat-header {
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.chat-title {
-  font-size: 1.2rem;
+.ds-chat-title {
+  font-size: 1.1rem;
   font-weight: 600;
+  color: #fff;
 }
 
-.chat-status {
+.ds-chat-status {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 0.85rem;
 }
 
-.status-indicator {
+.ds-status-indicator {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 16px;
+}
+
+.ds-connected {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.ds-disconnected {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.ds-status-icon {
   font-size: 0.9rem;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.status-dot.connected {
-  background-color: #4caf50;
-}
-
-.status-dot.disconnected {
-  background-color: #f44336;
-}
-
-.loading-indicator {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.error-banner {
-  padding: 8px 16px;
-  background-color: #ffebee;
-  color: #d32f2f;
+.ds-error-banner {
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.messages-container {
+.ds-error-icon {
+  font-size: 1rem;
+}
+
+.ds-messages-container {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
-  background-color: #f5f7fb;
+  background: rgba(10, 10, 20, 0.5);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-.empty-state {
+.ds-empty-state {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
 }
 
-.empty-icon {
+.ds-empty-icon {
   font-size: 2.5rem;
   margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.2);
 }
 
-.scroll-anchor {
+.ds-scroll-anchor {
   height: 1px;
 }
 
-.message-wrapper {
-  display: flex;
-  max-width: 80%;
-}
-
-.message-wrapper.customer {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-.message-wrapper.agent {
-  align-self: flex-start;
-}
-
-.chat-input-container {
+.ds-chat-input-container {
   padding: 16px;
-  background-color: white;
-  border-top: 1px solid #e0e0e0;
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
+
