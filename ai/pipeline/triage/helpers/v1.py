@@ -82,7 +82,7 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
             'content': followup
         })
         _update_history(session_id=session_id, history=messages)
-        return result
+        return followup
     
     elif contextualized_query:
         
@@ -155,4 +155,5 @@ def get_follow_up_text_response(request: MLRequest, producer) -> list:
 if __name__ == '__main__':
     pass
     result = text_stream_followup(session_id='abctest', message='thanks you', language=ENGLISH)
+    print(result)
     
