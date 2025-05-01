@@ -92,8 +92,7 @@ const AudioVisualizer = ({ audioChunk }) => {
 
       analyserRef.current.getByteFrequencyData(dataArrayRef.current);
 
-      canvasCtx.fillStyle = 'rgb(20, 20, 30)';
-      canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
       const barWidth = (WIDTH / dataArrayRef.current.length) * 2.5;
       let x = 0;
@@ -102,9 +101,9 @@ const AudioVisualizer = ({ audioChunk }) => {
         const barHeight = (dataArrayRef.current[i] / 255) * HEIGHT;
 
         const gradient = canvasCtx.createLinearGradient(0, HEIGHT - barHeight, 0, HEIGHT);
-        gradient.addColorStop(0, '#4a6fa5');
-        gradient.addColorStop(0.7, '#3a5a8a');
-        gradient.addColorStop(1, '#2a4a7a');
+        gradient.addColorStop(0, '#3b82f6');
+        gradient.addColorStop(0.7, '#2563eb');
+        gradient.addColorStop(1, '#1d4ed8');
 
         canvasCtx.fillStyle = gradient;
         canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
@@ -123,9 +122,17 @@ const AudioVisualizer = ({ audioChunk }) => {
   }, [isActive]);
 
   return (
-    <div className="audio-visualizer-container">
-      <canvas ref={canvasRef} width={300} height={100} className="audio-visualizer-canvas" />
-      <div className="audio-activity-label">{isActive ? 'Audio Active' : 'Audio Inactive'}</div>
+    <div className="audio-visualizer">
+      <canvas
+        ref={canvasRef}
+        width={400}
+        height={120}
+        className="audio-visualizer-canvas"
+      />
+      <div className={`audio-status ${isActive ? 'active' : ''}`}>
+        <span className="audio-status-indicator"></span>
+        {isActive ? 'Audio Active' : 'Audio Inactive'}
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import CallControls from './CallControls';
 import Keypad from './Keypad';
 import AudioVisualizer from './AudioVisualizer';
@@ -42,17 +42,31 @@ const CallScreen = () => {
       ) : (
         <div className="call-active-screen">
           <div className="call-status-bar">
-            <div className={`status-indicator ${callStatus}`}>{callStatus.toUpperCase()}</div>
+            <div className={`status-indicator ${callStatus}`}>
+              {callStatus.toUpperCase()}
+            </div>
             <div className="call-timer">{formatDuration(callDuration)}</div>
           </div>
 
-          <AudioVisualizer audioChunk={currentAudioChunk} />
+          <div className="audio-visualizer-container">
+            <AudioVisualizer audioChunk={currentAudioChunk} />
+          </div>
 
-          <div className="dtmf-display">{dtmfDigits || 'Enter digits...'}</div>
+          <div className="dtmf-display">
+            {dtmfDigits || <span className="dtmf-placeholder">Enter digits...</span>}
+          </div>
 
-          <CallControls isMuted={isMuted} toggleMute={toggleMute} endCall={endCall} />
+          <div className="call-controls">
+            <CallControls
+              isMuted={isMuted}
+              toggleMute={toggleMute}
+              endCall={endCall}
+            />
+          </div>
 
-          <Keypad onKeyPress={sendDTMF} />
+          <div className="keypad-container">
+            <Keypad onKeyPress={sendDTMF} />
+          </div>
         </div>
       )}
     </div>
