@@ -1,27 +1,24 @@
 import logging
 from schemas.messages import MLRequest, MLResponse
+from pipeline.helpers.v1 import respond_back_in_audio_streaming, get_text_response
 
 logger = logging.getLogger(__name__)
 
 
-def process_request(request: MLRequest) -> MLResponse:
+def process_request(request: MLRequest, producer) -> MLResponse:
     try:
         logger.info(f"Processor:: Processing {request.request_type} request with model {request.model}")
 
         request_type = request.request_type
 
-        if request_type == "text":
-            result = process_text_classification(request)
-        elif request_type == "audio":
-            result = process_audio_transcription(request)
+        if request_type == "audio":
+            respond_back_in_audio_streaming(request, producer)
+
+        elif request_type == "text":
+            get_text_response(request, producer)
+
         else:
             raise ValueError(f"Processor:: Unknown type: {request_type}")
-
-        return MLResponse(
-            request_id=request.request_id,
-            result=result,
-            model=request.model
-        )
 
     except Exception as e:
         logger.error(f"Processor:: Processing failed: {e}")

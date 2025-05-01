@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import webSocketService from '../services/websocket';
-import { sendMessageApi, uploadFileApi } from '../services/api';
+import { sendMessageApi, startChatApi, uploadFileApi } from '../services/api';
 
 const useChat = () => {
   const [messages, setMessages] = useState([]);
@@ -8,21 +8,29 @@ const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const userDestination = `/topic/chat`;
-  const broadcastTopic = `/topic/chat`;
+
+  const currentChatId = useRef(null);
+
+  const chatTopicRef = useRef(`/topic/chat-${Date.now()}`);
+  // const userDestination = `/topic/chat`;
+  // const broadcastTopic = `/topic/chat`;
 
   useEffect(() => {
-    let unsubscribeUser = () => {};
-    let unsubscribeBroadcast = () => {};
+    let unsubscribeUser = () => { };
+    let unsubscribeBroadcast = () => { };
 
     const initChat = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        await webSocketService.connect('http://localhost:8080/socket');
+        await webSocketService.connect('http://localhost:8090/socket');
 
-        unsubscribeUser = webSocketService.subscribe(userDestination, (message) => {
+        const { chatId } = await startChatApi();
+        currentChatId.current = chatId;
+        chatTopicRef.current = `/topic/chat-${chatId}`;
+
+        unsubscribeUser = webSocketService.subscribe(chatTopicRef.current, (message) => {
           setMessages((prev) => [
             ...prev,
             {
@@ -70,17 +78,19 @@ const useChat = () => {
 
   const sendMessage = useCallback(async (message) => {
     try {
+      const date = new Date().toISOString();
       const userMessage = {
         text: message,
         sender: 'user',
-        timestamp: new Date().toISOString(),
+        timestamp: date,
         type: 'text',
       };
       setMessages((prev) => [...prev, userMessage]);
 
       await sendMessageApi({
         content: message,
-        type: 'USER_MESSAGE',
+        messageId: date,
+        chatId: currentChatId.current
       });
     } catch (err) {
       console.error('Error sending message:', err);

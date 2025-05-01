@@ -1,6 +1,8 @@
+import json
+
 from confluent_kafka import Producer
 import logging
-from schemas.messages import MLResponse, MLError
+from schemas.messages import MLResponse, MLError, MLRequest
 from config.settings import app_settings
 
 logger = logging.getLogger(__name__)
@@ -23,12 +25,12 @@ class ResponseProducer:
             'compression.type': 'snappy',
         })
 
-    def send_response(self, response: MLResponse):
+    def send_response(self, response: MLRequest):
         try:
             self.producer.produce(
                 topic=app_settings.RESPONSE_TOPIC,
                 key=response.request_id,
-                value=response.model_dump_json(),
+                value=response.to_string(),
                 callback=_delivery_report
             )
             self.producer.poll(0)

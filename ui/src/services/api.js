@@ -1,5 +1,5 @@
-const API_BASE = 'http://localhost:8080';
-const CALL_API_BASE = 'http://localhost:8080/api/calls';
+const API_BASE = 'http://localhost:8090';
+const CALL_API_BASE = 'http://localhost:8090/api/calls';
 
 export const sendMessageApi = async (message) => {
   const response = await fetch(`${API_BASE}/api/chat/message`, {
@@ -7,7 +7,7 @@ export const sendMessageApi = async (message) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ content: message }),
+    body: JSON.stringify(message),
   });
   return await response.json();
 };
@@ -30,10 +30,18 @@ export const startCallApi = async () => {
   return await response.json();
 };
 
-export const sendAudioApi = async (audioBlob, messageId) => {
+export const startChatApi = async () => {
+  const response = await fetch(`${API_BASE}/api/chat/start`, {
+    method: 'POST',
+  });
+  return await response.json();
+};
+
+export const sendAudioApi = async (audioBlob, messageId, callId) => {
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.webm');
   formData.append('messageId', messageId);
+  formData.append('callId', callId);
 
   const response = await fetch(`${CALL_API_BASE}/audio`, {
     method: 'POST',
@@ -42,20 +50,36 @@ export const sendAudioApi = async (audioBlob, messageId) => {
   return await response.json();
 };
 
-export const endCallApi = async () => {
-  const response = await fetch(`${CALL_API_BASE}/end`, {
-    method: 'POST',
-  });
-  return await response.json();
-};
+export const endCallApi = async (callId) => {
 
-export const sendDTMFApi = async (digit) => {
-  const response = await fetch(`${API_BASE}/calls/dtmf`, {
+  const body = {
+    callId,
+  };
+
+  const response = await fetch(`${CALL_API_BASE}/end`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ digit }),
+    body: JSON.stringify(body),
+  });
+  return await response.json();
+};
+
+export const sendDTMFApi = async (digit, messageId, callId) => {
+
+  const body = {
+    digit,
+    messageId,
+    callId,
+  };
+
+  const response = await fetch(`${CALL_API_BASE}/dtmf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
   });
   return await response.json();
 };

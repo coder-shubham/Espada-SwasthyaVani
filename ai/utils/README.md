@@ -4,6 +4,17 @@ This folder contains various utility modules and helper classes used across the 
 
 ## Contents
 
+* **`llms/`**: This subfolder contains modules for interacting with different Language Model (LLM) providers.
+    * **`ollama/`**: This subfolder contains modules for interacting with the Ollama local LLM server.
+        * **`llama.py`**: Contains the `OllamaLlama3Client` class, which provides an interface for interacting with the Llama 3 model served by Ollama. It includes functionalities for:
+            * Initializing the client with a specified model name (defaulting to "llama3.1:8b"), temperature, and maximum tokens.
+            * Creating message dictionaries in the format expected by the Ollama API.
+            * Generating a single response based on a list of messages.
+            * Handling potential errors from the Ollama API or unexpected response formats.
+            * Streaming responses from the Ollama API.
+        * **Usage:**
+            To use the `OllamaLlama3Client`, ensure you have Ollama installed and the desired model (e.g., `llama3.1:8b`) downloaded and running. You can download the Llama 3.1 model by running `ollama run llama3.1:8b` in your terminal. The `if __name__ == '__main__':` block in `llama.py` provides a basic example of how to initialize the client, create messages, and generate a response.
+
 * **`vectorstores/`**: This subfolder houses modules for interacting with different vector databases.
     * **`weav8.py`**: Contains the `WeaviateCollectionClient` class, which provides an abstraction layer for interacting with Weaviate collections. It includes functionalities for:
         * Initializing and loading Weaviate collections.

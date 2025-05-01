@@ -15,7 +15,7 @@ class RequestConsumer:
             'bootstrap.servers': app_settings.KAFKA_BROKERS,
             'group.id': app_settings.CONSUMER_GROUP_ID,
             'auto.offset.reset': 'earliest',
-            'enable.auto.commit': False,
+            'enable.auto.commit': True,
         })
         self.running = False
 
@@ -43,16 +43,20 @@ class RequestConsumer:
                     continue
 
                 try:
+                    # print(msg)
                     request_data = msg.value().decode('utf-8')
+                    print(request_data)
+
                     if not request_data.strip():
                         raise ValueError("Empty JSON payload")
 
-                    request = MLRequest.model_validate_json(request_data)
-                    logger.info(f"RequestConsumer:: Processing request {request.request_id}")
+                    request_data = json.loads(request_data)
+                    mlrequest = MLRequest(**request_data)
+                    print(mlrequest)
+                    # request = MLRequest.model_validate(request_data)
+                    # logger.info(f"RequestConsumer:: Processing request {request.request_id}")
 
-                    response = process_request(request)
-
-                    producer.send_response(response)
+                    response = process_request(mlrequest, producer)
 
                     self.consumer.commit(msg)
 
@@ -65,11 +69,6 @@ class RequestConsumer:
                     producer.send_error(error)
                 except Exception as e:
                     logger.error(f"RequestConsumer:: Error processing request: {e}")
-                    error = MLError(
-                        request_id=request.request_id if 'request' in locals() else "unknown",
-                        error=str(e)
-                    )
-                    producer.send_error(error)
 
         except KeyboardInterrupt:
             self.running = False
