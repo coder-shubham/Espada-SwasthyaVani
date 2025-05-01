@@ -61,8 +61,7 @@ def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLI
         frequency_penalty=0.1,
         presence_penalty=1
     )
-    print(response) # last here
-    return response.choices[0].message.content, True if response.choices and response.choices[0].message else {}, True
+    return response.choices[0].message.content if response.choices and response.choices[0].message else {}
 
 
 def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
