@@ -1,33 +1,57 @@
-.controls-container {
+.call-controls-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
 }
 
-.control-button {
-  width: 50px;
-  height: 50px;
+.call-control-button {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: none;
-  background-color: #e9ecef;
-  margin: 0 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--box-shadow);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.control-button:hover {
-  background-color: #dee2e6;
+.call-control-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-.control-button.end-call {
-  background-color: var(--error-color);
-  color: white;
+.call-control-button:active {
+  transform: translateY(0);
 }
 
-.control-button.end-call:hover {
-  background-color: #d32f2f;
+.call-control-button svg {
+  stroke: #e2e8f0;
+}
+
+.call-control-button.muted {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.call-control-button.muted svg {
+  stroke: #ef4444;
+}
+
+.call-control-button.end-call {
+  background: rgba(239, 68, 68, 0.8);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.call-control-button.end-call:hover {
+  background: rgba(239, 68, 68, 0.9);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.call-control-button.end-call svg {
+  stroke: white;
 }
