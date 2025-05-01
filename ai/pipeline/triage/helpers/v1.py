@@ -5,6 +5,8 @@ import soundfile as sf
 import json
 import os
 
+from schemas.messages import MLRequest
+
 sys.path.append('.')
 
 from factory.config import FactoryConfig
@@ -120,9 +122,35 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         return {
             "specializations": filter_json.get('specializations')
         }
-        
-        
-        
+
+
+
+
+def get_follow_up_text_response(request: MLRequest, producer) -> list:
+    message = request.content
+    session_id = request.user_id
+    language = request.language
+
+    response = text_stream_followup(session_id=session_id, message=message, language=language)
+
+    print("get_follow_up_text_response:: response: ", response)
+    if isinstance(response, dict):
+        response = response.get("specializations")
+
+    chunk_response = MLRequest(
+        request_id=request.request_id,
+        content=response,
+        user_id=request.user_id,
+        request_type=request.request_type,
+        timestamp=request.timestamp,
+        timestampInLong=request.timestampInLong,
+        sender=request.sender,
+        language=request.language,
+        type=request.type,
+        isFinished=True
+    )
+
+    producer.send_response(chunk_response)
 
 if __name__ == '__main__':
     pass

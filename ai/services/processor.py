@@ -1,5 +1,6 @@
 import logging
 from schemas.messages import MLRequest, MLResponse
+from pipeline.triage.helpers.v1 import get_follow_up_text_response
 from pipeline.helpers.v1 import respond_back_in_audio_streaming, get_text_response
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,8 @@ def process_request(request: MLRequest, producer) -> MLResponse:
             respond_back_in_audio_streaming(request, producer)
 
         elif request_type == "text":
-            get_text_response(request, producer)
+            # get_text_response(request, producer)
+            get_follow_up_text_response(request, producer)
 
         else:
             raise ValueError(f"Processor:: Unknown type: {request_type}")
