@@ -1,0 +1,1 @@
+## storage for session based chat history
