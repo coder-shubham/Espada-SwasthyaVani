@@ -2,6 +2,7 @@ import sys
 import base64
 import io
 import soundfile as sf
+import json
 import os
 
 from requests import session
@@ -63,8 +64,8 @@ def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLI
         temperature=0.0,
         max_tokens=1024,
         top_p=1,
-        frequency_penalty=0.1,
-        presence_penalty=1
+        frequency_penalty=0.05,
+        presence_penalty=0.05
     )
     return response.choices[0].message.content if response.choices and response.choices[0].message else {}
 
@@ -99,46 +100,202 @@ def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
     yield curr_chunk, True
 
 
-def text_stream(audio=None, message=None, language=ENGLISH):
-    text = str()
-    if audio:
-        if FactoryConfig.tir_client:
-            text = get_text(file_path=audio, language=language)
+CHAT_HISTORY_STORAGE = 'chathistory'
+
+def _get_session_history(session_id):
+    if os.path.exists(f'{CHAT_HISTORY_STORAGE}/{session_id}.json'):
+        with open(f'{CHAT_HISTORY_STORAGE}/{session_id}.json', 'r') as handle:
+            data = json.load(handle)
+        return data
+    return None
+
+def _update_history(session_id, history):
+    try:
+        with open(f'{CHAT_HISTORY_STORAGE}/{session_id}.json', 'w') as handle:
+            json.dump(history, handle)
+        return True
+    except:
+        return False
+
+
+def text_stream(session_id, audio=None, message=None, language=ENGLISH):
+    
+    history = _get_session_history(session_id=session_id)
+    
+    if not history:
+        text = str()
+        if audio:
+            if FactoryConfig.tir_client:
+                text = get_text(file_path=audio, language=language)
+            else:
+                text = speech_to_text(audio, language=language)
+            print("Speech to Text Output: ", text)
+
+        if message:
+            text = message
+
+        coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
+                                                embeddings=FactoryConfig.embeddings)
+        coll_client.load_collection()
+        results = coll_client.query(query=text, top_k=5)
+
+        messages = [
+            FactoryConfig.llm.create_message(
+                role="system",
+                content=f"You are a helpful medical scheme female assistant. You answer concisely in {FactoryConfig.language_name[language]} language only. You will be given a query and some context, whatever the language of the query is, respond the answer in {FactoryConfig.language_name[language]} language only. You should not go beyond context, answer strictly from the provided context only.",
+            ),
+            FactoryConfig.llm.create_message(role="user",
+                                                content=f"Query: {text}. Context: {_prepare_context(results)}. Respond in {FactoryConfig.language_name[language]} language only"),
+        ]
+
+        breakpoints = _get_breakpoints(language)
+        
+        assistant_response = str()
+        txt_chunk, is_finished = None, None
+
+        if FactoryConfig.production:
+            for txt_chunk, is_finished in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints,
+                                                                    language=language):
+                assistant_response += txt_chunk
+                if is_finished:
+                    messages.pop()
+                    messages.append(
+                        FactoryConfig.llm.create_message(role="user",
+                        content=text)
+                    )
+                    messages.append(
+                        FactoryConfig.llm.create_message(role="assistant",
+                        content=assistant_response)
+                    )
+                    _update_history(session_id, history=messages)
+                
+                yield txt_chunk, is_finished
         else:
-            text = speech_to_text(audio, language=language)
-        print("Speech to Text Output: ", text)
-
-    if message:
-        text = message
-
-    coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
-                                           embeddings=FactoryConfig.embeddings)
-    coll_client.load_collection()
-    results = coll_client.query(query=text, top_k=5)
-
-    messages = [
-        FactoryConfig.llm.create_message(
-            role="system",
-            content=f"You are a helpful medical scheme assistant. You answer concisely in {FactoryConfig.language_name[language]} language only. You will be given a query and some context, whatever the language of the query is, respond the answer in {FactoryConfig.language_name[language]} language only. You should not go beyond context, answer strictly from the provided context only.",
-        ),
-        FactoryConfig.llm.create_message(role="user",
-                                         content=f"Query: {text}. Context: {_prepare_context(results)}. Respond in {FactoryConfig.language_name[language]} language only"),
-    ]
-
-    breakpoints = _get_breakpoints(language)
-
-    if FactoryConfig.production:
-        for txt_chunk, is_finished in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints,
-                                                                language=language):
-            yield txt_chunk, is_finished
+            for txt_chunk, is_finished in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints,
+                                                                            language=language):
+                assistant_response += txt_chunk
+                if is_finished:
+                    messages.pop()
+                    messages.append(
+                        FactoryConfig.llm.create_message(role="user",
+                        content=text)
+                    )
+                    messages.append(
+                        FactoryConfig.llm.create_message(role="assistant",
+                        content=assistant_response)
+                    )
+                    _update_history(session_id, history=messages)
+                
+                yield txt_chunk, is_finished
     else:
-        for txt_chunk, is_finished in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints,
-                                                                     language=language):
-            yield txt_chunk, is_finished
+        text = str()
+        if audio:
+            if FactoryConfig.tir_client:
+                text = get_text(file_path=audio, language=language)
+            else:
+                text = speech_to_text(audio, language=language)
+            print("Speech to Text Output: ", text)
+
+        if message:
+            text = message
+
+        coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
+                                                embeddings=FactoryConfig.embeddings)
+        coll_client.load_collection()
+        results = coll_client.query(query=text, top_k=5)
+        
+        messages = [
+            FactoryConfig.llm.create_message(
+                role="system",
+                content=f"""You are a helpful query analysis assistant. You return contextualized query in {FactoryConfig.language_name[language]} language only. You will be given a query and some history, whatever the language of the query is, respond the contextualized query in {FactoryConfig.language_name[language]} language only. You should respond with any other detail, return the contextualized query only.
+                Instructions: Either the query is standalone, can be understood without referencing previous previous messages, return it as it is in `contextualized_query` field.
+                Otherwise it would be related to previous queries, in that case return a contextualized query.
+                Response format: ```json{{"contextualized_query": "<contextualized query here>"}}""",
+            ),
+            FactoryConfig.llm.create_message(role="user",
+                                                content=f"Latest query: {text}. Respond in {FactoryConfig.language_name[language]} language only"),
+        ]
+        
+        breakpoints = _get_breakpoints(language)
+        response = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        l_index = response.find('{')
+        r_index = response.rfind('}')
+        try:
+            response_json = json.loads(response[l_index:r_index+1])
+        except:
+            response_json = {}
+        
+        contextualized_query = response_json.get('contextualized_query')
+        
+        print(contextualized_query, "contextualized_qery")
+        
+        
+        
+        if contextualized_query:
+            text = contextualized_query
+        else:
+            text = message
+
+        coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
+                                                embeddings=FactoryConfig.embeddings)
+        coll_client.load_collection()
+        results = coll_client.query(query=text, top_k=5)
+
+        
+        assistant_response = str()
+        txt_chunk, is_finished = None, None
+        messages = [
+            FactoryConfig.llm.create_message(
+                role="system",
+                content=f"You are a helpful medical scheme female assistant. You answer concisely in {FactoryConfig.language_name[language]} language only. You will be given a query and some context, whatever the language of the query is, respond the answer in {FactoryConfig.language_name[language]} language only. If the query is not related to the context, respond in conversational medical agent manner, If query is related to context then use the context to answer the query.",
+            ),
+            FactoryConfig.llm.create_message(role="user",
+                                                content=f"Query: {text}. ** Context (provided by external tool): {_prepare_context(results)} **. Respond in {FactoryConfig.language_name[language]} language only"),
+        ]
+
+        if FactoryConfig.production:
+            for txt_chunk, is_finished in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints,
+                                                                    language=language):
+                assistant_response += txt_chunk
+                if is_finished:
+                    history.append({
+                        'role': 'user',
+                        'content': text
+                    })
+                    history.append(
+                        {
+                        'role': 'assistant',
+                        'content': assistant_response
+                        }
+                    )
+                    _update_history(session_id, history=history)
+                
+                yield txt_chunk, is_finished
+                
+        else:
+            for txt_chunk, is_finished in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints,
+                                                                            language=language):
+                assistant_response += txt_chunk
+                if is_finished:
+                    history.append({
+                        'role': 'user',
+                        'content': text
+                    })
+                    history.append(
+                        {
+                        'role': 'assistant',
+                        'content': assistant_response
+                        }
+                    )
+                    _update_history(session_id, history=history)
+                
+                yield txt_chunk, is_finished
+        
 
 
-def audio_stream(audio_path, language=ENGLISH):
-    for txt_chunk, is_finished in text_stream(audio=audio_path, language=language):
+def audio_stream(session_id, audio_path, language=ENGLISH):
+    
+    for txt_chunk, is_finished in text_stream(session_id=session_id, audio=audio_path, language=language):
         generator = FactoryConfig.tts_model[language](txt_chunk, voice='af_heart')
         # for i, (gs, ps, audio) in enumerate(generator):
         #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
@@ -190,11 +347,3 @@ def get_text_response(request: MLRequest, producer) -> list:
         )
 
         producer.send_response(chunk_response)
-
-
-if __name__ == "__main__":
-    pass
-    # for item, is_finished in text_stream(message="आयुष्मान भारत के बारे में बताइए", language=HINDI):
-    #     print(item, is_finished)
-
-    # audio_stream(audio_path='testaudio.mp3', language=HINDI)

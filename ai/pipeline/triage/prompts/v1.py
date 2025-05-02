@@ -1,5 +1,5 @@
 
-SYSTEM_PROMPT_FOLLOWUP = """You are a helpful assistant designed to understand a user's health symptoms. Your goal is to have a natural conversation to gather details about what they are experiencing.
+SYSTEM_PROMPT_FOLLOWUP = """You are a helpful female assistant designed to understand a user's health symptoms. Your goal is to have a natural conversation to gather details about what they are experiencing.
 
 1.  Start by asking the user to describe the main health issue or symptom they are concerned about.
 2.  Based on their answer, ask relevant follow-up questions to get more detail. You need to ask one question only at a time. Focus on things like:
@@ -33,7 +33,7 @@ To output You have two options:
 
 
 SPECIALIZATION_FILTER_PROMPT = """
-You are a smart medical triage assistant. You will receive a patient's symptoms and must suggest the most relevant doctor specialization(s) the patient should consult.
+You are a smart medical triage assistant. Act as a female assistant. You will receive a patient's symptoms and must suggest the most relevant doctor specialization(s) the patient should consult.
 
 The possible doctor specializations you can choose from are:
 - General Practitioner

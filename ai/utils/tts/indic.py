@@ -71,10 +71,10 @@ def get_audio_using_tts(text, language):
     if response.status_code == 200:
         DEFAULT_SAMPLING_RATE = 24000
         audio_arr = json.loads(response.text)["outputs"][0]["data"]
-        _id = str(uuid.uuid4())
-        sf.write(f'temp_audio_{_id}.wav', audio_arr, DEFAULT_SAMPLING_RATE)
-        playsound(f'temp_audio_{_id}.wav')
-        os.remove(f'temp_audio_{_id}.wav')
+        # _id = str(uuid.uuid4())
+        # sf.write(f'temp_audio_{_id}.wav', audio_arr, DEFAULT_SAMPLING_RATE)
+        # playsound(f'temp_audio_{_id}.wav')
+        # os.remove(f'temp_audio_{_id}.wav')
         
         buffer = io.BytesIO()
         sf.write(buffer, audio_arr, DEFAULT_SAMPLING_RATE, format='WAV')
