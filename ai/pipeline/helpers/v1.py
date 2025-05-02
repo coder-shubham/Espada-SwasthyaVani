@@ -15,6 +15,7 @@ from factory.constants import ENGLISH, HINDI, LLAMA_33_70B_ID
 from utils.vectorstores.weav8 import WeaviateCollectionClient
 from utils.stt.whisper import speech_to_text
 from utils.stt.e2e.whisper import get_text
+from utils.tts.indic import get_audio_using_tts
 
 from playsound3 import playsound
 
@@ -296,18 +297,22 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
 def audio_stream(session_id, audio_path, language=ENGLISH):
     
     for txt_chunk, is_finished in text_stream(session_id=session_id, audio=audio_path, language=language):
-        generator = FactoryConfig.tts_model[language](txt_chunk, voice='af_heart')
-        # for i, (gs, ps, audio) in enumerate(generator):
-        #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
-        #     playsound(f'temp_audio_{i}.wav')
-        #     os.remove(f'temp_audio_{i}.wav')
-        #     print(is_finished)
-        for _, _, audio_data in generator:
-            buffer = io.BytesIO()
-            sf.write(buffer, audio_data, 24000, format='WAV')
-            buffer.seek(0)
-            audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        if FactoryConfig.indic_tts_url:
+            audio_base64 = get_audio_using_tts(txt_chunk, language=language)
             yield audio_base64, is_finished
+        else:
+            generator = FactoryConfig.tts_model[language](txt_chunk, voice='af_heart')
+            # for i, (gs, ps, audio) in enumerate(generator):
+            #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
+            #     playsound(f'temp_audio_{i}.wav')
+            #     os.remove(f'temp_audio_{i}.wav')
+            #     print(is_finished)
+            for _, _, audio_data in generator:
+                buffer = io.BytesIO()
+                sf.write(buffer, audio_data, 24000, format='WAV')
+                buffer.seek(0)
+                audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+                yield audio_base64, is_finished
 
 
 def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
