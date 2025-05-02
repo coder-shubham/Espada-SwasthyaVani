@@ -5,9 +5,10 @@ import soundfile as sf
 import json
 import os
 
-from schemas.messages import MLRequest
-
 sys.path.append('.')
+from schemas.messages import MLRequest
+from playsound3 import playsound
+
 
 from factory.config import FactoryConfig
 from factory.constants import HINDI, ENGLISH
@@ -82,7 +83,10 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
             'content': followup
         })
         _update_history(session_id=session_id, history=messages)
-        return followup
+        return {
+            'specialization': None,
+            'response': followup
+        }
     
     elif contextualized_query:
         
@@ -120,11 +124,47 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         
         filter_json = json.loads(raw_json)
         return {
-            "specializations": filter_json.get('specializations')
+            "specialization": filter_json.get('specialization'),
+            "response": filter_json.get('response')
         }
 
 
+def audio_followup(session_id, audio_path, language=ENGLISH):
+    result =  text_stream_followup(session_id=session_id, audio=audio_path, language=language)
+    generator = FactoryConfig.tts_model[language](result.get('response'), voice='af_heart')
+    specialization = result.get('specialization')
+    is_finished = True
+    # for i, (gs, ps, audio) in enumerate(generator):
+    #     print("hello", i)
+    #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
+    #     playsound(f'temp_audio_{i}.wav')
+    #     os.remove(f'temp_audio_{i}.wav')
+    #     print(is_finished)
+    for _, _, audio_data in generator:
+        buffer = io.BytesIO()
+        sf.write(buffer, audio_data, 24000, format='WAV')
+        buffer.seek(0)
+        audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        yield {'response': None, 'audio_base_64_response': audio_base64, 'specialization': specialization, 'isFinished': True }
 
+
+
+def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
+    audio_path = "../tmp/userAudioData/" + request.content
+    for result in audio_followup(session_id=request.user_id, audio_path=audio_path, language=request.language):
+        chunk_response = MLRequest(
+            request_id=request.request_id,
+            content=result.get('audio_base_64_response'),
+            user_id=request.user_id,
+            request_type=request.request_type,
+            timestamp=request.timestamp,
+            timestampInLong=request.timestampInLong,
+            sender=request.sender,
+            language=request.language,
+            type=request.type,
+            isFinished=result.get('isFinished')
+        )
+        producer.send_response(chunk_response)
 
 def get_follow_up_text_response(request: MLRequest, producer) -> list:
     message = request.content
@@ -133,9 +173,8 @@ def get_follow_up_text_response(request: MLRequest, producer) -> list:
 
     response = text_stream_followup(session_id=session_id, message=message, language=language)
 
-    print("get_follow_up_text_response:: response: ", response)
     if isinstance(response, dict):
-        response = response.get("specializations")
+        response = response.get("specialization")
 
     chunk_response = MLRequest(
         request_id=request.request_id,
@@ -151,9 +190,3 @@ def get_follow_up_text_response(request: MLRequest, producer) -> list:
     )
 
     producer.send_response(chunk_response)
-
-if __name__ == '__main__':
-    pass
-    result = text_stream_followup(session_id='abctest', message='thanks you', language=ENGLISH)
-    print(result)
-    
