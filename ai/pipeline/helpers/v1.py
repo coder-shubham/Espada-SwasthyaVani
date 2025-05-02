@@ -318,7 +318,7 @@ def audio_stream(session_id, audio_path, language=ENGLISH):
 def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
     audio_path = "../tmp/userAudioData/" + request.content
 
-    for base_64_chunk, is_finished in audio_stream(audio_path=audio_path, language=request.language):
+    for base_64_chunk, is_finished in audio_stream(session_id=request.user_id, audio_path=audio_path, language=request.language):
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=base_64_chunk,
@@ -337,7 +337,7 @@ def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
 def get_text_response(request: MLRequest, producer) -> list:
     message = request.content
 
-    for ml_response, is_finished in text_stream(message=message, language=request.language):
+    for ml_response, is_finished in text_stream(session_id=request.user_id, message=message, language=request.language):
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=ml_response,

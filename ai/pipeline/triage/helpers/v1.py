@@ -185,8 +185,9 @@ def get_follow_up_text_response(request: MLRequest, producer) -> list:
 
     response = text_stream_followup(session_id=session_id, message=message, language=language)
 
+    print("Response: ", response)
     if isinstance(response, dict):
-        response = response.get("specialization")
+        response = response.get("response")
 
     chunk_response = MLRequest(
         request_id=request.request_id,

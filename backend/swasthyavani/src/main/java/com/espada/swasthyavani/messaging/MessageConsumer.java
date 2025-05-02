@@ -84,14 +84,15 @@ public class MessageConsumer {
 
                 if(payload.getIsFinished()){
                     if(cachePayload != null) {
-                        cachePayload.setContent(cachePayload.getContent() + "\n" + payload.getContent());
+                        cachePayload.setContent(cachePayload.getContent() + "\n" +
+                                (payload.getContent().isEmpty() ? "" : payload.getContent()));
                         payload = cachePayload;
                         messageCache.remove(payload.getMessageId());
 
                         System.out.println("Message is finished. Sending the message with messageId: " + payload.getMessageId());
                     }
 
-                }else{
+                }else if(payload.getContent() != null && !payload.getContent().isEmpty()){
                     if(cachePayload != null) {
                         cachePayload.setContent(cachePayload.getContent() + "\n" + payload.getContent());
                         cachePayload.setLastUpdateTime(System.currentTimeMillis());
@@ -103,8 +104,19 @@ public class MessageConsumer {
 
                     System.out.println("Message is not finished yet. Caching the message with messageId: " + payload.getMessageId());
                     return;
+                }else{
+                    System.out.println("Message is empty. Not sending the message with messageId: " + payload.getMessageId() +
+                            "sessionId: " + payload.getCallId());
+                    return;
                 }
 
+            }
+
+
+            if(payload.getContent() == null || payload.getContent().isEmpty()){
+                System.out.println("Message is empty. Not sending the message with messageId: " + payload.getMessageId() +
+                        "sessionId: " + payload.getCallId());
+                return;
             }
 
             if (payload.getCallId() != null) {
