@@ -48,9 +48,9 @@ const CallScreen = () => {
             <div className="call-timer">{formatDuration(callDuration)}</div>
           </div>
 
-          <div className="audio-visualizer-container">
-            <AudioVisualizer audioChunk={currentAudioChunk} />
-          </div>
+          {/* <div className="audio-visualizer-container"> */}
+          {/*   <AudioVisualizer audioChunk={currentAudioChunk} /> */}
+          {/* </div> */}
 
           <div className="dtmf-display">
             {dtmfDigits || <span className="dtmf-placeholder">Enter digits...</span>}
