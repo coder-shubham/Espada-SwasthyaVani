@@ -16,6 +16,7 @@ from utils.stt.whisper import speech_to_text
 from pipeline.triage.prompts.v1 import SYSTEM_PROMPT_FOLLOWUP, SPECIALIZATION_FILTER_PROMPT
 from pipeline.helpers.v1 import _get_breakpoints, _handle_llama_33_70b_call, _handle_local_llama_31_8b_call, _handle_llama_33_70b_call_no_streaming
 from utils.vectorstores.weav8 import WeaviateCollectionClient
+from utils.tts.indic import get_audio_using_tts
 from collections import Counter
 
 CHAT_HISTORY_STORAGE = 'chathistory'
@@ -117,6 +118,7 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         ]
         
         filter_result = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        
         l_index = filter_result.find('{')
         r_index = filter_result.rfind('}')
         
@@ -130,22 +132,28 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
 
 
 def audio_followup(session_id, audio_path, language=ENGLISH):
+    
     result =  text_stream_followup(session_id=session_id, audio=audio_path, language=language)
-    generator = FactoryConfig.tts_model[language](result.get('response'), voice='af_heart')
-    specialization = result.get('specialization')
-    is_finished = True
-    # for i, (gs, ps, audio) in enumerate(generator):
-    #     print("hello", i)
-    #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
-    #     playsound(f'temp_audio_{i}.wav')
-    #     os.remove(f'temp_audio_{i}.wav')
-    #     print(is_finished)
-    for _, _, audio_data in generator:
-        buffer = io.BytesIO()
-        sf.write(buffer, audio_data, 24000, format='WAV')
-        buffer.seek(0)
-        audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-        yield {'response': None, 'audio_base_64_response': audio_base64, 'specialization': specialization, 'isFinished': True }
+    if FactoryConfig.indic_tts_url:
+        audio_base64 = get_audio_using_tts(result.get('response'), language=language)
+        return {'response': None, 'audio_base_64_response': audio_base64, 'specialization': result.get('specialization'), 'isFinished': True }
+    else:
+    
+        generator = FactoryConfig.tts_model[language](result.get('response'), voice='af_heart')
+        specialization = result.get('specialization')
+        is_finished = True
+        # for i, (gs, ps, audio) in enumerate(generator):
+        #     print("hello", i)
+        #     sf.write(f'temp_audio_{i}.wav', audio, 24000)
+        #     playsound(f'temp_audio_{i}.wav')
+        #     os.remove(f'temp_audio_{i}.wav')
+        #     print(is_finished)
+        for _, _, audio_data in generator:
+            buffer = io.BytesIO()
+            sf.write(buffer, audio_data, 24000, format='WAV')
+            buffer.seek(0)
+            audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+            return {'response': None, 'audio_base_64_response': audio_base64, 'specialization': specialization, 'isFinished': True } # as one time only
 
 
 

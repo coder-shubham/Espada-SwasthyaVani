@@ -63,6 +63,8 @@ class FactoryConfig:
     language_name = dict()
     production = False
     llama_33_70b_client = None
+    indic_tts_url = None
+    indic_tts_token = None
 
 
 FactoryConfig.vector_db_client = _get_vector_db_client()
@@ -90,4 +92,6 @@ FactoryConfig.language_name[ENGLISH] = 'English'
 FactoryConfig.language_name[HINDI] = 'Hindi'
 FactoryConfig.language_name[MARATHI] = 'Marathi'
 FactoryConfig.language_name[TELUGU] = 'Telugu'
+FactoryConfig.indic_tts_url = os.getenv('INDIC_TTS_BASE_URL')
+FactoryConfig.indic_tts_token = os.getenv('LLAMA_33_70B_API_KEY')
 
