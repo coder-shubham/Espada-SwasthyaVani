@@ -1,0 +1,5 @@
+recursive-include pipeline *
+recursive-include chathistory *.json
+recursive-include config *.py
+include app.py
+include *.md
