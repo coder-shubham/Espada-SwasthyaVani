@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     LLAMA_33_70B_API_KEY: str = os.getenv("LLAMA_33_70B_API_KEY", "")
     LLAMA_33_70B_BASE_URL: str = os.getenv("LLAMA_33_70B_BASE_URL", "")
     PRODUCTION: str = os.getenv("PRODUCTION", "")
+    INDIC_TTS_BASE_URL: str = os.getenv("INDIC_TTS_BASE_URL", "")
+    E2E_TIR_ACCESS_TOKEN: str = os.getenv("E2E_TIR_ACCESS_TOKEN", "")
+    E2E_TIR_API_KEY: str = os.getenv("E2E_TIR_API_KEY", "")
+    E2E_TIR_PROJECT_ID: str = os.getenv("E2E_TIR_PROJECT_ID", "")
+    E2E_TIR_TEAM_ID: str = os.getenv("E2E_TIR_TEAM_ID", "")
 
     class Config:
         env_file = ".env"
