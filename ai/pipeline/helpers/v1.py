@@ -13,6 +13,7 @@ from factory.config import FactoryConfig
 from factory.constants import ENGLISH, HINDI, LLAMA_33_70B_ID
 from utils.vectorstores.weav8 import WeaviateCollectionClient
 from utils.stt.whisper import speech_to_text
+from utils.stt.e2e.whisper import get_text
 
 from playsound3 import playsound
 
@@ -101,7 +102,10 @@ def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
 def text_stream(audio=None, message=None, language=ENGLISH):
     text = str()
     if audio:
-        text = speech_to_text(audio, language=language)
+        if FactoryConfig.tir_client:
+            text = get_text(file_path=audio, language=language)
+        else:
+            text = speech_to_text(audio, language=language)
         print("Speech to Text Output: ", text)
 
     if message:

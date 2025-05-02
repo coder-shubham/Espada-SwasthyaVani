@@ -5,6 +5,7 @@ from weaviate.classes.init import Auth
 from sentence_transformers import SentenceTransformer
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+from e2enetworks.cloud import tir
 
 from dotenv import load_dotenv
 
@@ -65,6 +66,7 @@ class FactoryConfig:
     llama_33_70b_client = None
     indic_tts_url = None
     indic_tts_token = None
+    tir_client = None
 
 
 FactoryConfig.vector_db_client = _get_vector_db_client()
@@ -74,6 +76,9 @@ FactoryConfig.stt_pipe = _get_stt_pipe()
 FactoryConfig.tts_pipeline_english = KPipeline(repo_id=KOKORO_REPO_ID, lang_code=KOKORO_ENGLISH_CODE)
 FactoryConfig.tts_pipeline_hindi = KPipeline(repo_id=KOKORO_REPO_ID, lang_code=KOKORO_HINDI_CODE)
 
+if os.getenv('E2E_TIR_ACCESS_TOKEN') and os.getenv('E2E_TIR_API_KEY') and os.getenv('E2E_TIR_PROJECT_ID') and os.getenv('E2E_TIR_TEAM_ID'):
+    tir.init()
+    FactoryConfig.tir_client = tir.ModelAPIClient()
 
 if os.getenv('LLAMA_33_70B_BASE_URL') and os.getenv('LLAMA_33_70B_API_KEY') and os.getenv('PRODUCTION') and os.getenv('PRODUCTION').lower() == CREDITS_CAN_BE_CONSUMED_NOW.lower():
     FactoryConfig.llama_33_70b_client = OpenAI(base_url=os.getenv('LLAMA_33_70B_BASE_URL')

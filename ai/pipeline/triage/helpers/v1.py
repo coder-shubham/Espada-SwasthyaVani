@@ -13,6 +13,7 @@ from playsound3 import playsound
 from factory.config import FactoryConfig
 from factory.constants import HINDI, ENGLISH
 from utils.stt.whisper import speech_to_text
+from utils.stt.e2e.whisper import get_text
 from pipeline.triage.prompts.v1 import SYSTEM_PROMPT_FOLLOWUP, SPECIALIZATION_FILTER_PROMPT
 from pipeline.helpers.v1 import _get_breakpoints, _handle_llama_33_70b_call, _handle_local_llama_31_8b_call, _handle_llama_33_70b_call_no_streaming
 from utils.vectorstores.weav8 import WeaviateCollectionClient
@@ -42,7 +43,10 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
     
     text = str()
     if audio:
-        text = speech_to_text(audio, language=language)
+        if FactoryConfig.tir_client:
+            text = get_text(file_path=audio, language=language)
+        else:
+            text = speech_to_text(audio, language=language)
         print("Speech to Text Output: ", text)
     
     if message:
@@ -198,3 +202,47 @@ def get_follow_up_text_response(request: MLRequest, producer) -> list:
     )
 
     producer.send_response(chunk_response)
+
+
+import sounddevice as sd
+from scipy.io.wavfile import write
+import uuid
+
+# Constants
+SAMPLE_RATE = 44100  # Sample rate in Hz
+DURATION = 5  # Duration in seconds for recording
+LANGUAGE = HINDI
+SESSION_ID = str(uuid.uuid4())  # Generating a unique session ID
+
+def record_audio(filename='followup.wav', duration=DURATION, fs=SAMPLE_RATE):
+    print(f"Recording for {duration} seconds...")
+    audio_data = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='int16')
+    sd.wait()  # Wait until recording is finished
+    write(filename, fs, audio_data)
+    print("Recording complete.")
+
+def convert_wav_to_mp3(wav_file, mp3_file):
+    from pydub import AudioSegment
+    sound = AudioSegment.from_wav(wav_file)
+    sound.export(mp3_file, format="mp3")
+
+def main():
+    print("Welcome to the interactive assistant. Type 'exit' to end the session.")
+
+    while True:
+        user_input = input("Press Enter to speak or type 'exit' to quit: ")
+        if user_input.lower() in ['exit', 'quit']:
+            break
+
+        record_audio('followup.wav')
+        convert_wav_to_mp3('followup.wav', 'followup.mp3')
+
+        result = audio_followup(session_id=SESSION_ID, audio_path='followup.mp3', language=LANGUAGE)
+        # print(f"Bot: {result}")
+
+    # Clean up
+    FactoryConfig.vector_db_client.close()
+    print("Session closed. Goodbye!")
+
+if __name__ == "__main__":
+    main()
