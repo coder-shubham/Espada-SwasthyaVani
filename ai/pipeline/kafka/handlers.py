@@ -16,6 +16,7 @@ from pipeline.triage.helpers.v1 import get_follow_up_text_response, _handle_llam
     _get_breakpoints
 from pipeline.triage.helpers.v1 import respond_back_in_audio_streaming_followup, audio_followup, text_stream_followup
 from pipeline.helpers.v1 import audio_stream, text_stream, respond_back_in_audio_streaming, get_text_response
+from pipeline.prescription.helpers.v1 import respond_back_in_audio_streaming_prescription, get_text_response_prescription
 
 from utils.stt.e2e.whisper import get_text
 from utils.tts.indic import get_audio_using_tts
@@ -24,6 +25,7 @@ IP_PROMPT = """You are a message classification assistant. Your task is to categ
 
 1. scheme_info – The user is inquiring about a medical scheme, insurance plan, government healthcare program, or any benefit-related policy.
 2. consultation – The user is describing symptoms, asking about an illness, requesting medical advice, or discussing health concerns.
+3. prescription - The user is trying to understand medicines and schedules from last prescription.
 3. greeting – The user is engaging in small talk, saying hello, expressing thanks, or making general friendly conversation without seeking information or help.
 
 Classify each message into only one of the three categories: scheme_info, consultation, or greeting.
@@ -42,6 +44,9 @@ Assistant: scheme_info
 User: I’ve been having chest pain and shortness of breath for two days.
 Assistant: consultation
 
+User: I want to understand my prescription.
+Assistant: prescription
+
 User: Good morning, doctor!
 Assistant: greeting
 
@@ -51,6 +56,9 @@ Assistant: scheme_info
 User: I have a sore throat and slight fever since last night. Should I be worried?
 Assistant: consultation
 
+User: I want to know about medicines from my prescription?
+Assistant: prescription
+
 User: Thanks for your help!
 Assistant: greeting
 
@@ -59,6 +67,9 @@ Assistant: scheme_info
 
 User: I’m feeling dizzy and lightheaded most of the time.
 Assistant: consultation
+
+User: I want to chat with my prescription.
+Assistant: prescription
 """
 
 CHAT_HISTORY_STORAGE = 'chathistory'
@@ -84,6 +95,7 @@ def _update_curr_state(session_id, state):
 GREETING_INTENT = 'greeting'
 SCHEME_INTENT = 'scheme_info'
 CONSULTATION_INTENT = 'consultation'
+PRESCRIPTION_INTENT = 'prescription'
 
 
 def get_intent(session_id, text):
@@ -107,6 +119,8 @@ def get_intent(session_id, text):
             intent = SCHEME_INTENT
         elif 'consultation' in response:
             intent = CONSULTATION_INTENT
+        elif 'prescription' in response:
+            intent = PRESCRIPTION_INTENT
 
         _update_curr_state(session_id=session_id, state=intent)
         return intent
@@ -134,6 +148,8 @@ def get_audio_intent(session_id, audio_path, language):
             intent = SCHEME_INTENT
         elif 'consultation' in response:
             intent = CONSULTATION_INTENT
+        elif 'prescription' in response:
+            intent = PRESCRIPTION_INTENT
 
         _update_curr_state(session_id=session_id, state=intent)
         return intent
@@ -169,6 +185,8 @@ def handle_text(request: MLRequest, producer) -> list:
         get_follow_up_text_response(request=request, producer=producer)
     elif intent == SCHEME_INTENT:
         get_text_response(request=request, producer=producer)
+    elif intent == PRESCRIPTION_INTENT:
+        get_text_response_prescription(request=request, producer=producer)
 
 
 def handle_audio(request: MLRequest, producer) -> list:
@@ -195,3 +213,5 @@ def handle_audio(request: MLRequest, producer) -> list:
         respond_back_in_audio_streaming_followup(request=request, producer=producer)
     elif intent == SCHEME_INTENT:
         respond_back_in_audio_streaming(request=request, producer=producer)
+    elif intent == PRESCRIPTION_INTENT:
+        respond_back_in_audio_streaming_prescription(request=request, producer=producer)
