@@ -1,13 +1,15 @@
 
 import sys
 sys.path.append('.')
-from factory.config import HINDI, ENGLISH, FactoryConfig
+from factory.config import HINDI, ENGLISH, MARATHI, TELUGU, FactoryConfig
 
 
 def get_text(file_path, language):
     codes = {
         HINDI: 'Hindi',
-        ENGLISH: 'English'
+        ENGLISH: 'English',
+        MARATHI: 'Marathi',
+        TELUGU: 'Telugu'
     }
     data = {"input": file_path,
             "language": codes.get(language),
