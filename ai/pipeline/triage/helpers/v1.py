@@ -144,7 +144,7 @@ def audio_followup(session_id, audio_path, language=ENGLISH):
     result =  text_stream_followup(session_id=session_id, audio=audio_path, language=language)
     if FactoryConfig.indic_tts_url:
         audio_base64 = get_audio_using_tts(result.get('response'), language=language)
-        return {'response': None, 'audio_base_64_response': audio_base64, 'specialization': result.get('specialization'), 'isFinished': True }
+        return {'response': result.get("response"), 'audio_base_64_response': audio_base64, 'specialization': result.get('specialization'), 'isFinished': True }
     else:
     
         generator = FactoryConfig.tts_model[language](result.get('response'), voice='af_heart')
@@ -161,7 +161,7 @@ def audio_followup(session_id, audio_path, language=ENGLISH):
             sf.write(buffer, audio_data, 24000, format='WAV')
             buffer.seek(0)
             audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-            return {'response': None, 'audio_base_64_response': audio_base64, 'specialization': specialization, 'isFinished': True } # as one time only
+            return {'response': result.get("response"), 'audio_base_64_response': audio_base64, 'specialization': specialization, 'isFinished': True } # as one time only
 
 
 
@@ -172,6 +172,8 @@ def respond_back_in_audio_streaming_followup(request: MLRequest, producer) -> li
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=result.get('audio_base_64_response'),
+            summary=result.get("response"),
+            specialization=result.get('specialization'),
             user_id=request.user_id,
             request_type=request.request_type,
             timestamp=request.timestamp,
@@ -190,13 +192,18 @@ def get_follow_up_text_response(request: MLRequest, producer) -> list:
 
     response = text_stream_followup(session_id=session_id, message=message, language=language)
 
+    specialization = None
     print("Response: ", response)
     if isinstance(response, dict):
+        specialization = response.get("specialization")
         response = response.get("response")
+
 
     chunk_response = MLRequest(
         request_id=request.request_id,
         content=response,
+        summary=response,
+        specialization= specialization,
         user_id=request.user_id,
         request_type=request.request_type,
         timestamp=request.timestamp,

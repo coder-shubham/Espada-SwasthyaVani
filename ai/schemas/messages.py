@@ -27,6 +27,8 @@ class MLRequest:
     isFinished: Optional[bool] = False
     finished: Optional[bool] = False
     lastUpdateTime: Optional[int] = None
+    specialization: Optional[str] = None
+    summary: Optional[str] = None
 
     def to_string(self) -> str:
         return json.dumps(asdict(self), default=str)
