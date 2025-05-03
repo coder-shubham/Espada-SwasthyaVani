@@ -230,10 +230,7 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
         except:
             response_json = {}
         
-        contextualized_query = response_json.get('contextualized_query')
-        
-        print(contextualized_query, "contextualized_qery")
-        
+        contextualized_query = response_json.get('contextualized_query')        
         
         
         if contextualized_query:

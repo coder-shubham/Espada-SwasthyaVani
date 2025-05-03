@@ -127,9 +127,12 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         r_index = filter_result.rfind('}')
         
         raw_json = filter_result[l_index: r_index+1]
-        
-        filter_json = json.loads(raw_json)
-        print("filter_json: ", filter_json)
+        try:
+            
+            filter_json = json.loads(raw_json)
+            print("filter_json: ", filter_json)
+        except:
+            filter_json = dict()
         return {
             "specialization": filter_json.get('specialization'),
             "response": filter_json.get('response')
