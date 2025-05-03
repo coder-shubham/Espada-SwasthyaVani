@@ -69,7 +69,8 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
     
     if FactoryConfig.production:
         result = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
-        
+    
+    print(f"LLM Response in case of consultation: {result}")
     
     l_index = result.find('{')
     r_index = result.rfind('}')
@@ -128,7 +129,6 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         
         raw_json = filter_result[l_index: r_index+1]
         try:
-            
             filter_json = json.loads(raw_json)
             print("filter_json: ", filter_json)
         except:
@@ -142,6 +142,7 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
 def audio_followup(session_id, audio_path, language=ENGLISH):
     
     result =  text_stream_followup(session_id=session_id, audio=audio_path, language=language)
+    print("Received result from text stream followup call: ", result)
     if FactoryConfig.indic_tts_url:
         audio_base64 = get_audio_using_tts(result.get('response'), language=language)
         yield {'response': result.get('response'), 'audio_base_64_response': audio_base64, 'specialization': result.get('specialization'), 'isFinished': True }
