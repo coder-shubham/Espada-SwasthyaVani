@@ -7,15 +7,19 @@ package com.espada.swasthyavani.service;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.espada.swasthyavani.config.ApplicationConfiguration;
+import com.espada.swasthyavani.controller.ChatController;
 import com.espada.swasthyavani.messaging.MessageProducer;
 import com.espada.swasthyavani.model.KafkaMessagePayload;
 import com.espada.swasthyavani.model.LanguageCode;
+import com.espada.swasthyavani.model.PatientHistory;
 import com.espada.swasthyavani.model.UserInfo;
 import com.espada.swasthyavani.model.WebhookMessagePayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class ChatService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final ApplicationConfiguration applicationConfiguration;
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageProducer messageProducer;
@@ -57,7 +62,7 @@ public class ChatService {
     @Async
     public void startChatSession(String chatId) throws Exception {
         // Start a chat session for the user
-        System.out.println("Starting chat session for user: " + chatId);
+        logger.debug("Starting chat session for user: " + chatId);
 
         UserInfo userInfo = new UserInfo().setUserId(chatId).setLanguage(null);
 
@@ -73,62 +78,74 @@ public class ChatService {
 
         Thread.sleep(2000);
 
-        System.out.println("Sending start message to chatId: " + chatId);
+        logger.debug("Sending start message to chatId: " + chatId);
 
         messagingTemplate.convertAndSend(String.format("/topic/chat-%s",chatId), payload);
     }
 
     @Async
-    public void processUserMessage(Map<String, Object> message) throws Exception {
+    public void processUserMessage(Map<String, Object> message)  {
         // Process the user message here
-        System.out.println("Processing user message: " + message);
 
-        String chatId = (String) message.get("chatId");
-        String userMessage = (String) message.get("content");
-        String messageId = (String) message.get("messageId");
+        try{
+            logger.debug("Processing user message: " + message);
 
-        UserInfo userInfo = (UserInfo) cacheService.getFromCache(chatId);
+            String chatId = (String) message.get("chatId");
+            String userMessage = (String) message.get("content");
+            String messageId = (String) message.get("messageId");
 
-        if(userInfo.getLanguage() == null || userInfo.getLanguage().isEmpty()) {
+            UserInfo userInfo = (UserInfo) cacheService.getFromCache(chatId);
 
-            LanguageCode languageCode = LanguageCode.fromCode(userMessage);
+            if(userInfo.getLanguage() == null || userInfo.getLanguage().isEmpty()) {
 
-            String language = languageCode.getLanguage();
+                LanguageCode languageCode = LanguageCode.fromCode(userMessage);
 
-            System.out.println("Language: " + language + "chatId: " + chatId);
+                String language = languageCode.getLanguage();
 
-            userInfo.setLanguage(language);
+                logger.debug("Language: " + language + "chatId: " + chatId);
 
-            cacheService.saveToCache(chatId, userInfo);
+                userInfo.setLanguage(language);
 
-            sendIntroMessageAsPerLanguage(languageCode, chatId);
+                cacheService.saveToCache(chatId, userInfo);
 
-            return;
+                sendIntroMessageAsPerLanguage(languageCode, chatId);
 
+                return;
+
+            }
+
+            KafkaMessagePayload kafkaMessagePayload = new KafkaMessagePayload()
+                    .setCallId(chatId)
+                    .setContent(userMessage)
+                    .setLanguage(userInfo.getLanguage())
+                    .setRequestType(WebhookMessagePayload.RequestType.TEXT.getValue())
+                    .setSender(WebhookMessagePayload.SenderType.USER.getValue())
+                    .setTimestamp(System.currentTimeMillis())
+                    .setMessageId(messageId);
+
+            Object object = cacheService.getFromCache("telehistory");
+            if(object != null){
+                PatientHistory patientHistory = (PatientHistory) object;
+                kafkaMessagePayload.setPatientHistory(patientHistory);
+            }
+
+            // Send the message to the Kafka topic
+
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            messageProducer.sendMessage(applicationConfiguration.getProducerTopic(),
+                    objectMapper.writeValueAsString(kafkaMessagePayload));
+        }catch (Exception ex){
+            logger.error("Exception in processing user message as: " + ex.getMessage());
+        }catch (Error e){
+            logger.error("Error in processing user message as: " + e.getMessage());
         }
-
-        KafkaMessagePayload kafkaMessagePayload = new KafkaMessagePayload()
-                .setCallId(chatId)
-                .setContent(userMessage)
-                .setLanguage(userInfo.getLanguage())
-                .setRequestType(WebhookMessagePayload.RequestType.TEXT.getValue())
-                .setSender(WebhookMessagePayload.SenderType.USER.getValue())
-                .setTimestamp(System.currentTimeMillis())
-                .setMessageId(messageId);
-
-        // Send the message to the Kafka topic
-
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        messageProducer.sendMessage(applicationConfiguration.getProducerTopic(),
-                objectMapper.writeValueAsString(kafkaMessagePayload));
-
 
     }
 
     private void sendIntroMessageAsPerLanguage(LanguageCode languageCode, String chatId) throws Exception {
         // Send the intro message as per the language code
-        System.out.println("Sending intro message in " + languageCode + " to chatId: " + chatId);
+        logger.debug("Sending intro message in " + languageCode + " to chatId: " + chatId);
 
         String message = switch (languageCode) {
             case HINDI -> "कृपया अपनी समस्या का विवरण दें।";

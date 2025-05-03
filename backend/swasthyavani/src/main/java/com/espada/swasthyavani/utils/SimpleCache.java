@@ -52,6 +52,6 @@ public class SimpleCache<K, V> {
         Instant now = Instant.now();
         cache.entrySet().removeIf(entry ->
                 now.toEpochMilli() - entry.getValue().lastUpdated.toEpochMilli() > olderThanMillis
-        );
+                        && !entry.getKey().equals("telehistory"));
     }
 }

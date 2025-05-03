@@ -63,6 +63,7 @@ def _handle_local_llama_31_8b_call(messages, breakpoints, language=ENGLISH):
 
 
 def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLISH):
+    print('Executing llama 33 70b call no streaming')
     response = FactoryConfig.llama_33_70b_client.chat.completions.create(
         model=LLAMA_33_70B_ID,
         messages=messages,
@@ -72,6 +73,7 @@ def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLI
         frequency_penalty=0.1,
         presence_penalty=0.1
     )
+    print('llama 33 70b call no streaming response: ', response)
     return response.choices[0].message.content if response.choices and response.choices[0].message else {}
 
 

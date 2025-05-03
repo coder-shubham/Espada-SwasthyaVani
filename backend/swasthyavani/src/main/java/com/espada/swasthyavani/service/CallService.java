@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +24,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.espada.swasthyavani.config.ApplicationConfiguration;
+import com.espada.swasthyavani.controller.ChatController;
 import com.espada.swasthyavani.messaging.MessageProducer;
 import com.espada.swasthyavani.model.KafkaMessagePayload;
 import com.espada.swasthyavani.model.LanguageCode;
+import com.espada.swasthyavani.model.PatientHistory;
 import com.espada.swasthyavani.model.UserInfo;
 import com.espada.swasthyavani.model.WebhookMessagePayload;
 import com.espada.swasthyavani.utils.AudioChunkUtil;
@@ -36,6 +40,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Service
 public class CallService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CallService.class);
 
     private final ApplicationConfiguration applicationConfiguration;
     private final SimpMessagingTemplate messagingTemplate;
@@ -76,7 +82,7 @@ public class CallService {
     }
 
     public void endCallSession(String callId) throws Exception {
-        System.out.println("Ending call session for callId: " + callId);
+        logger.debug("Ending call session for callId: " + callId);
 
         cacheService.removeFromCache(callId);
 
@@ -112,11 +118,12 @@ public class CallService {
         byte[] audioBytes = audioFile.getBytes();
         String originalFilename = audioFile.getOriginalFilename();
 
-        System.out.println("Received audio file: " + originalFilename);
-        System.out.println("With messageId: " + messageId + " and callId: " + callId);
-        System.out.println("File size: " + audioBytes.length + " bytes");
 
-        String UPLOAD_DIR = "/mnt/shared-dir";
+        logger.debug("Received audio file: " + originalFilename);
+        logger.debug("With messageId: " + messageId + " and callId: " + callId);
+        logger.debug("File size: " + audioBytes.length + " bytes");
+
+        String UPLOAD_DIR = "/mnt/shared-dir/";
         File uploadDir = new File(UPLOAD_DIR);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
@@ -127,7 +134,7 @@ public class CallService {
 
         Files.write(filePath, audioBytes);
 
-        System.out.println("File saved at: " + filePath.toString());
+        logger.debug("File saved at: " + filePath.toString());
 
         UserInfo userInfo = (UserInfo) cacheService.getFromCache(callId);
 
@@ -138,6 +145,12 @@ public class CallService {
                 .setLanguage(userInfo.getLanguage())
                 .setRequestType(WebhookMessagePayload.RequestType.AUDIO.getValue())
                 .setTimestamp(System.currentTimeMillis());
+
+        Object object = cacheService.getFromCache("telehistory");
+        if(object != null){
+            PatientHistory patientHistory = (PatientHistory) object;
+            payload.setPatientHistory(patientHistory);
+        }
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -153,7 +166,7 @@ public class CallService {
 
         UserInfo userInfo = (UserInfo) object;
 
-        System.out.println("UserInfo: " + userInfo);
+        logger.debug("UserInfo: " + userInfo);
 
         if (userInfo.getLanguage() == null || userInfo.getLanguage().isEmpty()) {
 
@@ -161,7 +174,7 @@ public class CallService {
 
             String language = languageCode.getLanguage();
 
-            System.out.println("Language: " + language + "callId: " + callId);
+            logger.debug("Language: " + language + "callId: " + callId);
 
             userInfo.setLanguage(language);
 
@@ -191,7 +204,7 @@ public class CallService {
                         .setSender(WebhookMessagePayload.SenderType.SYSTEM.getValue())
                         .setTimestamp(System.currentTimeMillis());
 
-                System.out.println("Sending message to callId: " + callId);
+                logger.debug("Sending message to callId: " + callId);
 
                 messagingTemplate.convertAndSend(String.format("/topic/call-%s", callId), payload);
 

@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +48,8 @@ import jakarta.annotation.PostConstruct;
 @Controller
 @RequestMapping("/api/calls")
 public class CallController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CallController.class);
 
     private final ApplicationConfiguration applicationConfiguration;
     private final SimpMessagingTemplate messagingTemplate;
@@ -82,7 +86,7 @@ public class CallController {
 
         String callId = String.valueOf(System.currentTimeMillis());
 
-        System.out.println("Starting call with ID: " + callId);
+        logger.debug("Starting call with ID: " + callId);
 
         startCallSession(callId);
 
@@ -100,15 +104,15 @@ public class CallController {
             String messageId = payload.get("messageId");
             String callId = payload.get("callId");
 
-            System.out.println("Received DTMF: " + digit);
-            System.out.println("With messageId: " + messageId);
+            logger.debug("Received DTMF: " + digit);
+            logger.debug("With messageId: " + messageId);
 
             processDtmfRequest(digit, messageId, callId);
 
             //TODO: Handle DTMF for other cases
 
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            logger.error("Error processing DTMF: " + e.getMessage());
             return ResponseEntity.status(500).body("Failed to process DTMF.");
         }
 
@@ -126,9 +130,10 @@ public class CallController {
         try {
             processAudioRequest(audioFile, messageId, callId);
         } catch (IOException e) {
+            logger.error("Error reading audio file: " + e.getMessage());
             return ResponseEntity.status(500).body("Failed to read audio file.");
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            logger.error("Error processing audio: " + e.getMessage());
             return ResponseEntity.status(500).body("Failed to process audio file.");
         }
 
@@ -152,15 +157,9 @@ public class CallController {
     }
 
     @Async
-    public void processAudioRequest(MultipartFile audioFile, String messageId, String callId) throws Exception{
+    public void processAudioRequest(MultipartFile audioFile, String messageId, String callId) throws Exception {
         callService.processNewAudioMessage(audioFile, messageId, callId);
     }
-
-    @Async
-    public void sendAudioFileToAi(String messageData) throws Exception{
-        messageProducer.sendMessage(applicationConfiguration.getProducerTopic(), messageData);
-    }
-
 
     @Async
     public void sendLanguageAudioIntro(LanguageCode languageCode, String callId) throws Exception {
@@ -203,7 +202,7 @@ public class CallController {
                         .setSender(WebhookMessagePayload.SenderType.SYSTEM.getValue())
                         .setTimestamp(System.currentTimeMillis());
 
-                System.out.println("Sending message to callId: " + callId);
+                logger.debug("Sending message to callId: " + callId);
 
                 messagingTemplate.convertAndSend(String.format("/topic/call-%s",callId), payload);
 
@@ -219,7 +218,7 @@ public class CallController {
 
         String callId = payload.get("callId");
 
-        System.out.println("Stopping call with ID: " + callId);
+        logger.debug("Stopping call with ID: " + callId);
 
         endCallSession(callId);
         // Logic to stop the call

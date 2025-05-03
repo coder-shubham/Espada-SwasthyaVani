@@ -8,9 +8,12 @@ package com.espada.swasthyavani.service;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import com.espada.swasthyavani.controller.ChatController;
 import com.espada.swasthyavani.model.KafkaMessagePayload;
 import com.espada.swasthyavani.model.WebhookMessagePayload;
 import com.espada.swasthyavani.model.WebhookMessagePayload.SenderType;
@@ -21,6 +24,9 @@ import com.espada.swasthyavani.model.WebhookMessagePayload.SenderType;
  * Created by shubhamsarraf on 27/04/25
  */
 public class MessageTask implements Runnable{
+
+    private static final Logger logger = LoggerFactory.getLogger(MessageTask.class);
+
     private SimpMessagingTemplate messagingTemplate;
 
     private KafkaMessagePayload kafkaMessagePayload;
@@ -43,7 +49,7 @@ public class MessageTask implements Runnable{
             lock = locks.computeIfAbsent(callId, id -> new ReentrantLock());
             lock.lock();
 
-            System.out.println("Processing message for callID/chatId: " + callId);
+            logger.debug("Processing message for callID/chatId: " + callId);
 
 
             WebhookMessagePayload webhookMessagePayload = new WebhookMessagePayload()
@@ -56,8 +62,8 @@ public class MessageTask implements Runnable{
                     .setSender(SenderType.fromValue(kafkaMessagePayload.getSender().toLowerCase()).getValue())
                     .setTimestamp(kafkaMessagePayload.getTimestampInLong());
 
+            logger.debug("Sending to callId/chatId: " + callId);
 
-            System.out.println("Sending to callId/chatId: " + callId);
 
             if(webhookMessagePayload.getRequestMessageType().equals(WebhookMessagePayload.RequestType.AUDIO.getValue())
             || webhookMessagePayload.getRequestMessageType().equals(WebhookMessagePayload.RequestType.DTMF.getValue())){
@@ -73,9 +79,10 @@ public class MessageTask implements Runnable{
 
             Thread.sleep(1000);
         } catch (InterruptedException e) {
+            logger.error("Thread interrupted: " + e.getMessage());
             Thread.currentThread().interrupt(); // Restore the interrupted status
         } catch (Exception ex){
-            System.out.println("Exception in MessageTask: " + ex.getMessage());
+            logger.error("Exception in MessageTask: " + ex.getMessage());
         } finally {
             if (lock != null) {
                 lock.unlock();
