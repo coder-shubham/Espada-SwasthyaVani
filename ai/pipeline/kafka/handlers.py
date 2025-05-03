@@ -101,11 +101,16 @@ def get_intent(session_id, text):
         response = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=ENGLISH)
         
         if 'greeting' in response:
-            return GREETING_INTENT
+            intent =  GREETING_INTENT
         elif 'scheme_info' in response:
-            return SCHEME_INTENT
+            intent = SCHEME_INTENT
         elif 'consultation' in response:
-            return CONSULTATION_INTENT
+            intent = CONSULTATION_INTENT
+        
+        _update_curr_state(session_id=session_id, state=intent)
+        return intent
+        
+        
 
 def get_audio_intent(session_id, audio_path, language):
     text = get_text(audio_path, language=language)
@@ -123,13 +128,15 @@ def get_audio_intent(session_id, audio_path, language):
         ]
         breakpoints = _get_breakpoints(language=ENGLISH)
         response = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=ENGLISH)
-        
         if 'greeting' in response:
-            return GREETING_INTENT
+            intent =  GREETING_INTENT
         elif 'scheme_info' in response:
-            return SCHEME_INTENT
+            intent = SCHEME_INTENT
         elif 'consultation' in response:
-            return CONSULTATION_INTENT
+            intent = CONSULTATION_INTENT
+        
+        _update_curr_state(session_id=session_id, state=intent)
+        return intent
 
 GREETING_RESPONSES = {
     ENGLISH: "Hey, you can consult about and illness as well as you can know about government medical schemes.",
