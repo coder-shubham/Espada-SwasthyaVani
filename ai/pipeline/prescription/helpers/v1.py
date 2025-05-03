@@ -315,13 +315,4 @@ def get_text_response_prescription(request: MLRequest, producer) -> list:
         producer.send_response(chunk_response)
 
 
-if __name__ == "__main__":
-    print("testing purpose")
-    session_id = str(uuid.uuid4())
-    while True:
-        message = input("You: ")
-        for result in text_stream_prescription(session_id=session_id, audio=None, message=message, language=ENGLISH):
-            pass
-
-
 
