@@ -24,7 +24,7 @@ const useChat = () => {
         setIsLoading(true);
         setError(null);
 
-        await webSocketService.connect('http://localhost:8090/socket');
+        await webSocketService.connect('http://164.52.194.203:8090/socket');
 
         const { chatId } = await startChatApi();
         currentChatId.current = chatId;

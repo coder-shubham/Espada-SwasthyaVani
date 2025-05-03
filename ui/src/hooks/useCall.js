@@ -7,7 +7,7 @@ const useCall = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const [dtmfDigits, setDtmfDigits] = useState('');
-  const [currentAudioChunk, setCurrentAudioChunk] = useState(null);
+  // const [currentAudioChunk, setCurrentAudioChunk] = useState(null);
 
   const audioContextRef = useRef(null);
   const audioStreamRef = useRef(null);
@@ -42,7 +42,7 @@ const useCall = () => {
 
       initializeMediaRecord();
 
-      await webSocketService.connect('http://localhost:8090/socket');
+      await webSocketService.connect('http://164.52.194.203:8090/socket');
 
       const { callId } = await startCallApi();
       currentCallId.current = callId;
@@ -148,10 +148,10 @@ const useCall = () => {
       //   }
 
       const audioData = audioQueueRef.current.shift();
-      setCurrentAudioChunk(audioData);
+      // setCurrentAudioChunk(audioData);
       const arrayBuffer = base64ToArrayBuffer(audioData);
       const buffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-      setCurrentAudioChunk(buffer);
+      // setCurrentAudioChunk(buffer);
       const source = audioContextRef.current.createBufferSource();
       source.buffer = buffer;
       source.connect(audioContextRef.current.destination);
@@ -163,7 +163,7 @@ const useCall = () => {
         isAudioPlayingRef.current = false;
         if (audioQueueRef.current.length > 0) {
           processAudioQueue();
-        }else{
+        } else {
           audioTimeoutRef.current = setTimeout(() => {
             if (currentMessageType.current === 'audio') {
               playBeepSound();
@@ -232,14 +232,14 @@ const useCall = () => {
   //   // Create oscillator for simple hold music
   //   const oscillator = audioContextRef.current.createOscillator();
   //   const gainNode = audioContextRef.current.createGain();
-    
+
   //   oscillator.type = 'sine';
   //   oscillator.frequency.value = 440; // A4 note
   //   gainNode.gain.value = 0.1; // Low volume
-    
+
   //   oscillator.connect(gainNode);
   //   gainNode.connect(audioContextRef.current.destination);
-    
+
   //   oscillator.start();
   //   holdMusicSourceRef.current = { oscillator, gainNode };
   // }, []);
@@ -286,7 +286,7 @@ const useCall = () => {
     return new Promise((resolve) => {
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-        const timestamp = Date.now();  
+        const timestamp = Date.now();
         console.log('Recording: ', 'sending recording');
         currentMessageIdRef.current = timestamp.toString();
         await sendAudioApi(audioBlob, currentMessageIdRef.current, currentCallId.current);
@@ -373,7 +373,7 @@ const useCall = () => {
   const sendDTMF = useCallback(
     async (digit) => {
       try {
-          setDtmfDigits(prev => prev + digit);
+        setDtmfDigits(prev => prev + digit);
         if (
           digit === '#' && mediaRecorderRef.current &&
           mediaRecorderRef.current.state === 'recording' &&
@@ -418,7 +418,6 @@ const useCall = () => {
     sendDTMF,
     callDuration,
     dtmfDigits,
-    currentAudioChunk,
   };
 };
 
