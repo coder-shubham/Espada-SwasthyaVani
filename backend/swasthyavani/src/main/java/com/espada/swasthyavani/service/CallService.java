@@ -116,7 +116,7 @@ public class CallService {
         System.out.println("With messageId: " + messageId + " and callId: " + callId);
         System.out.println("File size: " + audioBytes.length + " bytes");
 
-        String UPLOAD_DIR = "../../tmp/userAudioData";
+        String UPLOAD_DIR = "/mnt/shared-dir";
         File uploadDir = new File(UPLOAD_DIR);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();

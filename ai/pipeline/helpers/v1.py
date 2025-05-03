@@ -316,7 +316,7 @@ def audio_stream(session_id, audio_path, language=ENGLISH):
 
 
 def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
-    audio_path = "../tmp/userAudioData/" + request.content
+    audio_path = "/mnt/shared-dir/" + request.content
 
     for base_64_chunk, is_finished in audio_stream(session_id=request.user_id, audio_path=audio_path, language=request.language):
         chunk_response = MLRequest(

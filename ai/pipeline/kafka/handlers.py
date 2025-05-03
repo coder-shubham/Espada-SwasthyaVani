@@ -172,7 +172,7 @@ def handle_text(request: MLRequest, producer) -> list:
 
 
 def handle_audio(request: MLRequest, producer) -> list:
-    audio_path = "../tmp/userAudioData/" + request.content
+    audio_path = "/mnt/shared-dir/" + request.content
     intent = get_audio_intent(request.user_id, audio_path, request.language)
 
     if intent == GREETING_INTENT:
