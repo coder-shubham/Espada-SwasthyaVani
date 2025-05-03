@@ -208,8 +208,8 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
         messages = [
             FactoryConfig.llm.create_message(
                 role="system",
-                content=f"""You are a helpful query analysis assistant. You return contextualized query in {FactoryConfig.language_name[language]} language only. You will be given a query and some history, whatever the language of the query is, respond the contextualized query in {FactoryConfig.language_name[language]} language only. You should respond with any other detail, return the contextualized query only.
-                Instructions: Either the query is standalone, can be understood without referencing previous previous messages, return it as it is in `contextualized_query` field.
+                content=f"""You are a helpful query contextualizing assistant. You return contextualized query in {FactoryConfig.language_name[language]} language only. You will be given a query and some history, whatever the language of the query is, respond the contextualized query in {FactoryConfig.language_name[language]} language only. You should respond with any other detail, return the contextualized query only.
+                Instructions: If the query looks related to previous queries, in that case form a contextualized query and return it in `contextualized_query` field. Also, the query may be standalone, means it can be understood without referencing previous previous messages, in that case return it as it is in `contextualized_query` field.
                 Otherwise it would be related to previous queries, in that case return a contextualized query.
                 Response format: ```json{{"contextualized_query": "<contextualized query here>"}}""",
             ),
