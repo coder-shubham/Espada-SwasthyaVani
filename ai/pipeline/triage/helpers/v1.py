@@ -80,7 +80,7 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         followup = raw_json.get('followup').strip()
         contextualized_query = raw_json.get('contextualized_query')
     except:
-        followup = ''
+        followup = result
         contextualized_query = ''
     
     if followup:
