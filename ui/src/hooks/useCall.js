@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import webSocketService from '../services/websocket';
 import { startCallApi, endCallApi, sendAudioApi, sendDTMFApi } from '../services/api';
+import { API_URL, LOCAL_API_URL } from '../utils/constants';
 
 const useCall = () => {
   const [callStatus, setCallStatus] = useState('idle'); // 'idle'|'connecting'|'active'|'ending'|'error'
@@ -42,7 +43,8 @@ const useCall = () => {
 
       initializeMediaRecord();
 
-      await webSocketService.connect('http://164.52.194.203:8090/socket');
+      const WS_URL = API_URL + "/socket";
+      await webSocketService.connect(WS_URL);
 
       const { callId } = await startCallApi();
       currentCallId.current = callId;

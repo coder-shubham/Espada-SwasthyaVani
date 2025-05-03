@@ -129,6 +129,7 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         raw_json = filter_result[l_index: r_index+1]
         
         filter_json = json.loads(raw_json)
+        print("filter_json: ", filter_json)
         return {
             "specialization": filter_json.get('specialization'),
             "response": filter_json.get('response')
@@ -164,6 +165,7 @@ def audio_followup(session_id, audio_path, language=ENGLISH):
 def respond_back_in_audio_streaming_followup(request: MLRequest, producer) -> list:
     audio_path = "../tmp/userAudioData/" + request.content
     for result in audio_followup(session_id=request.user_id, audio_path=audio_path, language=request.language):
+        print("result: ", result)
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=result.get('audio_base_64_response'),

@@ -1,5 +1,7 @@
-const API_BASE = 'http://164.52.194.203:8090';
-const CALL_API_BASE = 'http://164.52.194.203:8090/api/calls';
+import { API_URL, LOCAL_API_URL } from "../utils/constants";
+
+const API_BASE = API_URL;
+const CALL_API_BASE = API_URL + "/api/calls";
 
 export const sendMessageApi = async (message) => {
   const response = await fetch(`${API_BASE}/api/chat/message`, {

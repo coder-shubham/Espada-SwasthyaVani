@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import webSocketService from '../services/websocket';
 import { sendMessageApi, startChatApi, uploadFileApi } from '../services/api';
+import { API_URL, LOCAL_API_URL } from '../utils/constants';
 
 const useChat = () => {
   const [messages, setMessages] = useState([]);
@@ -24,7 +25,8 @@ const useChat = () => {
         setIsLoading(true);
         setError(null);
 
-        await webSocketService.connect('http://164.52.194.203:8090/socket');
+        const WS_URL = API_URL + "/socket";
+        await webSocketService.connect(WS_URL);
 
         const { chatId } = await startChatApi();
         currentChatId.current = chatId;

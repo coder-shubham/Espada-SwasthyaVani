@@ -65,8 +65,8 @@ def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLI
         temperature=0.0,
         max_tokens=1024,
         top_p=1,
-        frequency_penalty=0.05,
-        presence_penalty=0.05
+        # frequency_penalty=0.05,
+        # presence_penalty=0.05
     )
     return response.choices[0].message.content if response.choices and response.choices[0].message else {}
 

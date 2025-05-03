@@ -84,7 +84,7 @@ public class MessageConsumer {
 
                 if(payload.getIsFinished()){
                     if(cachePayload != null) {
-                        cachePayload.setContent(cachePayload.getContent() + "\n" +
+                        cachePayload.setContent(cachePayload.getContent() +
                                 (payload.getContent().isEmpty() ? "" : payload.getContent()));
                         payload = cachePayload;
                         messageCache.remove(payload.getMessageId());
@@ -94,7 +94,7 @@ public class MessageConsumer {
 
                 }else if(payload.getContent() != null && !payload.getContent().isEmpty()){
                     if(cachePayload != null) {
-                        cachePayload.setContent(cachePayload.getContent() + "\n" + payload.getContent());
+                        cachePayload.setContent(cachePayload.getContent() + payload.getContent());
                         cachePayload.setLastUpdateTime(System.currentTimeMillis());
                         messageCache.put(payload.getMessageId(), cachePayload);
                     }else{
