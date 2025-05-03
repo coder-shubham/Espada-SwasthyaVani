@@ -84,3 +84,6 @@ def get_audio_using_tts(text, language):
         audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
         
         return audio_base64
+    else:
+        print(f"Indic TTS Error: {response.status_code}, {response.text}")
+        return None

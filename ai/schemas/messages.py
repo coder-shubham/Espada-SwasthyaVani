@@ -21,6 +21,7 @@ class MLRequest:
     timestamp: int
     timestampInLong: int
     type: Optional[str] = None
+    patientHistory: Optional[dict] = None
     model: Optional[str] = None
     user_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None

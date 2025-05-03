@@ -278,8 +278,10 @@ def audio_stream_prescription(session_id, audio_path, language=ENGLISH, summary=
 
 def respond_back_in_audio_streaming_prescription(request: MLRequest, producer) -> list:
     audio_path = "/mnt/shared-dir/" + request.content
+    hist_summary = request.patientHistory.get('summary') if request.patientHistory else None
+    hist_specialization = request.patientHistory.get('specialization') if request.patientHistory else None
 
-    for base_64_chunk, is_finished in audio_stream_prescription(session_id=request.user_id, audio_path=audio_path, language=request.language, summary=request.summary, specialization=request.specialization):
+    for base_64_chunk, is_finished in audio_stream_prescription(session_id=request.user_id, audio_path=audio_path, language=request.language, summary=hist_summary, specialization=hist_specialization):
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=base_64_chunk,
@@ -297,8 +299,10 @@ def respond_back_in_audio_streaming_prescription(request: MLRequest, producer) -
 
 def get_text_response_prescription(request: MLRequest, producer) -> list:
     message = request.content
+    hist_summary = request.patientHistory.get('summary') if request.patientHistory else None
+    hist_specialization = request.patientHistory.get('specialization') if request.patientHistory else None
 
-    for ml_response, is_finished in text_stream_prescription(session_id=request.user_id, message=message, language=request.language, summary=request.summary, specialization=request.specialization):
+    for ml_response, is_finished in text_stream_prescription(session_id=request.user_id, message=message, language=request.language, summary=hist_summary, specialization=hist_specialization):
         chunk_response = MLRequest(
             request_id=request.request_id,
             content=ml_response,

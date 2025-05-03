@@ -100,7 +100,7 @@ PRESCRIPTION_INTENT = 'prescription'
 
 def get_intent(session_id, text):
     curr_state = _get_curr_state(session_id)
-    if curr_state in [SCHEME_INTENT, CONSULTATION_INTENT]:
+    if curr_state in [SCHEME_INTENT, CONSULTATION_INTENT, PRESCRIPTION_INTENT]:
         return curr_state
     else:
         messages = [
@@ -129,7 +129,9 @@ def get_intent(session_id, text):
 def get_audio_intent(session_id, audio_path, language):
 
     curr_state = _get_curr_state(session_id)
-    if curr_state in [SCHEME_INTENT, CONSULTATION_INTENT]:
+    print("Current Path: ", os.getcwd())
+    print("Audio Path: ", audio_path)
+    if curr_state in [SCHEME_INTENT, CONSULTATION_INTENT, PRESCRIPTION_INTENT]:
         return curr_state
     else:
         text = get_text(audio_path, language=language)
