@@ -1,7 +1,7 @@
 import logging
 from schemas.messages import MLRequest, MLResponse
-from pipeline.triage.helpers.v1 import get_follow_up_text_response
-from pipeline.helpers.v1 import respond_back_in_audio_streaming, get_text_response
+
+from pipeline.kafka.handlers import handle_audio, handle_text
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +13,10 @@ def process_request(request: MLRequest, producer) -> MLResponse:
         request_type = request.request_type
 
         if request_type == "audio":
-            respond_back_in_audio_streaming(request, producer)
+            handle_audio(request, producer)
 
         elif request_type == "text":
-            # get_text_response(request, producer)
-            get_follow_up_text_response(request, producer)
+            handle_text(request, producer)
 
         else:
             raise ValueError(f"Processor:: Unknown type: {request_type}")
