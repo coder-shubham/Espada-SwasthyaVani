@@ -14,7 +14,7 @@ from factory.config import FactoryConfig, ENGLISH, HINDI, TELUGU, MARATHI
 
 from pipeline.triage.helpers.v1 import get_follow_up_text_response, _handle_llama_33_70b_call_no_streaming, \
     _get_breakpoints
-from pipeline.triage.helpers.v1 import respond_back_in_audio_streaming_followup
+from pipeline.triage.helpers.v1 import respond_back_in_audio_streaming_followup, audio_followup, text_stream_followup
 from pipeline.helpers.v1 import audio_stream, text_stream, respond_back_in_audio_streaming, get_text_response
 
 from utils.stt.e2e.whisper import get_text
@@ -113,12 +113,12 @@ def get_intent(session_id, text):
 
 
 def get_audio_intent(session_id, audio_path, language):
-    text = get_text(audio_path, language=language)
 
     curr_state = _get_curr_state(session_id)
     if curr_state in [SCHEME_INTENT, CONSULTATION_INTENT]:
         return curr_state
     else:
+        text = get_text(audio_path, language=language)
         messages = [
             FactoryConfig.llm.create_message(
                 role="system",
