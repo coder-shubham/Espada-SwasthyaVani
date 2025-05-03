@@ -13,7 +13,7 @@ import sys
 sys.path.append('.')
 
 from factory.config import FactoryConfig
-from factory.config import HINDI, ENGLISH
+from factory.config import HINDI, ENGLISH, TELUGU, MARATHI
 
 
 def _prepare_payload(text, language):
@@ -21,7 +21,9 @@ def _prepare_payload(text, language):
     codes = dict()
     codes = {
         HINDI: 'hi',
-        ENGLISH: 'en'
+        ENGLISH: 'en',
+        TELUGU: 'te',
+        MARATHI: 'mr'
     }
 
     payload = json.dumps({
