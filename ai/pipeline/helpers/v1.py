@@ -11,7 +11,7 @@ sys.path.append('.')
 from schemas.messages import MLResponse, MLRequest
 
 from factory.config import FactoryConfig
-from factory.constants import ENGLISH, HINDI, LLAMA_33_70B_ID
+from factory.constants import ENGLISH, HINDI, LLAMA_33_70B_ID, MARATHI, TELUGU
 from utils.vectorstores.weav8 import WeaviateCollectionClient
 from utils.stt.whisper import speech_to_text
 from utils.stt.e2e.whisper import get_text
@@ -36,7 +36,11 @@ def _get_breakpoints(language=ENGLISH):
     if language == ENGLISH:
         return [',', '.', '?', '!']
     elif language == HINDI:
-        return ['\u0970', '\u0964', ',', '.', '?']
+        return ['\u0970', '\u0964', ',', '.', '?', '\u0965']
+    elif language == MARATHI:
+        return ['\u0964', '\u0965', ',', '.', '?', '!', '\u0970']
+    elif language == TELUGU:
+        return ['\u0C64', ',', '.', '?', '!']
 
 
 def _handle_local_llama_31_8b_call(messages, breakpoints, language=ENGLISH):
