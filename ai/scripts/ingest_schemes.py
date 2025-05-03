@@ -12,6 +12,13 @@ from langchain_community.document_loaders import PlaywrightURLLoader
 GOV_SCHEMES_COLL_NAME = 'gov_schemes'
 GOV_SCHEMES = {
     "Free Motorized Tricycle Scheme for Persons with Disabilities - Uttar Pradesh": "https://www.myscheme.gov.in/schemes/fmtsfpwd",
+    "Surakshit Matritva Aashwasan Yojana - India": "https://www.myscheme.gov.in/schemes/suman",
+    "Janani Shishu Suraksha Karyakram - India": "https://www.myscheme.gov.in/schemes/jssk",
+    "Medical Assistance for the Treatment of Critical Illness - Maharashtra": "https://www.myscheme.gov.in/schemes/matci",
+    "Employee Health Scheme - Andhra Pradesh": "https://www.myscheme.gov.in/schemes/ehsap",
+    "Dr. YSR Aarogyasri Health Insurance Scheme - Andhra Pradesh": "https://www.myscheme.gov.in/schemes/dysrhis",
+    "Deen Dayal Upadhyaya Antyodaya Parivar Suraksha Yojana (DAYALU) - Haryana": "https://www.myscheme.gov.in/schemes/dayalu",
+    "Ayushman Bharat - Pradhan Mantri Jan Arogya Yojana - India": "https://www.myscheme.gov.in/schemes/ab-pmjay"
 }
 
 

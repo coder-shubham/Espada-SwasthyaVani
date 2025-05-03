@@ -55,7 +55,7 @@ def _handle_local_llama_31_8b_call(messages, breakpoints, language=ENGLISH):
             last = curr_chunk
             curr_chunk = str()
 
-    yield curr_chunk, True
+    yield last, True
 
 
 def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLISH):
@@ -65,8 +65,8 @@ def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLI
         temperature=0.0,
         max_tokens=1024,
         top_p=1,
-        # frequency_penalty=0.05,
-        # presence_penalty=0.05
+        frequency_penalty=0.1,
+        presence_penalty=0.1
     )
     return response.choices[0].message.content if response.choices and response.choices[0].message else {}
 
@@ -98,7 +98,7 @@ def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
                 last = curr_chunk
                 curr_chunk = str()
 
-    yield curr_chunk, True
+    yield last, True
 
 
 CHAT_HISTORY_STORAGE = 'chathistory'
