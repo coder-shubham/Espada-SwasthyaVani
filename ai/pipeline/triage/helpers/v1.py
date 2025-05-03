@@ -161,7 +161,7 @@ def audio_followup(session_id, audio_path, language=ENGLISH):
 
 
 
-def respond_back_in_audio_streaming(request: MLRequest, producer) -> list:
+def respond_back_in_audio_streaming_followup(request: MLRequest, producer) -> list:
     audio_path = "../tmp/userAudioData/" + request.content
     for result in audio_followup(session_id=request.user_id, audio_path=audio_path, language=request.language):
         chunk_response = MLRequest(
