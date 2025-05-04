@@ -34,13 +34,13 @@ def _prepare_context(results):
 
 def _get_breakpoints(language=ENGLISH):
     if language == ENGLISH:
-        return [',', '.', '?', '!']
+        return ['.', '?', '!']
     elif language == HINDI:
-        return ['\u0970', '\u0964', ',', '.', '?', '\u0965']
+        return ['\u0970', '\u0964', '.', '?', '\u0965']
     elif language == MARATHI:
-        return ['\u0964', '\u0965', ',', '.', '?', '!', '\u0970']
+        return ['\u0964', '\u0965', '.', '?', '!', '\u0970']
     elif language == TELUGU:
-        return ['\u0C64', ',', '.', '?', '!']
+        return ['\u0C64', '.', '?', '!']
 
 
 def _handle_local_llama_31_8b_call(messages, breakpoints, language=ENGLISH):
@@ -292,7 +292,7 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
         messages = [
             FactoryConfig.llm.create_message(
                 role="system",
-                content=f"You are a helpful medical scheme female assistant. You answer concisely in {FactoryConfig.language_name[language]} language only. You will be given a query and some context, whatever the language of the query is, respond the answer in {FactoryConfig.language_name[language]} language only. If the query is not related to the context, respond in conversational medical agent manner, If query is related to context then use the context to answer the query.",
+                content=f"You are a helpful medical scheme female assistant. You answer concisely and briefly in {FactoryConfig.language_name[language]} language only. You will be given a query and some context, whatever the language of the query is, respond the answer in {FactoryConfig.language_name[language]} language only. If the query is not related to the context, respond in conversational medical agent manner, If query is related to context then use the context to answer the query. Keep the response brief.",
             ),
             FactoryConfig.llm.create_message(role="user",
                                                 content=f"Query: {text}. ** Context (provided by external tool, not provided by the user): {_prepare_context(results)} **. Respond in {FactoryConfig.language_name[language]} language only"),

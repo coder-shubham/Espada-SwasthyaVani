@@ -35,13 +35,13 @@ def _prepare_context(results):
 
 def _get_breakpoints(language=ENGLISH):
     if language == ENGLISH:
-        return [',', '.', '?', '!']
+        return ['.', '?', '!']
     elif language == HINDI:
-        return ['\u0970', '\u0964', ',', '.', '?', '\u0965']
+        return ['\u0970', '\u0964', '.', '?', '\u0965']
     elif language == MARATHI:
-        return ['\u0964', '\u0965', ',', '.', '?', '!', '\u0970']
+        return ['\u0964', '\u0965', '.', '?', '!', '\u0970']
     elif language == TELUGU:
-        return ['\u0C64', ',', '.', '?', '!']
+        return ['\u0C64', '.', '?', '!']
 
 
 
