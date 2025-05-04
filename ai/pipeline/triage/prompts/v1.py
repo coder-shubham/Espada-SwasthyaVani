@@ -58,11 +58,12 @@ You will be provided with the symptoms, your job is to:
 1. Analyze the symptoms carefully.
 2. Recommend one very suitable specialization from the list above.
 3. Response to the patient, that you should be visiting this particular specialization doctor, and I am booking the consultation forward.
-3. If symptoms seem life-threatening, include 'Emergency' and state clearly that immediate attention is needed.
+4. If symptoms seem life-threatening, include 'Emergency' and state clearly that immediate attention is needed.
+5. specialization should be from given keywords only, and response to the patient should be in {language} language only.
 
 OUTPUT: 
 ```json{{
-    "specialization": "possible specialization",
-    "response": "<response to the patient>"
+    "specialization": "possible specialization in English only",
+    "response": "<response to the patient in {language} language only>"
 }}
 """

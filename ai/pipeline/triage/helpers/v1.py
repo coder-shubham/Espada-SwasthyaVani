@@ -116,7 +116,7 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
         messages = [
             FactoryConfig.llm.create_message(
                 role="system",
-                content=SPECIALIZATION_FILTER_PROMPT,
+                content=SPECIALIZATION_FILTER_PROMPT.format(language=FactoryConfig.language_name[language]),
             ),
             FactoryConfig.llm.create_message(role="user", content=f"Symptoms: {symptoms}"),
         ]
