@@ -64,6 +64,7 @@ class FactoryConfig:
     language_name = dict()
     production = False
     llama_33_70b_client = None
+    llama_31_405b_client = None
     indic_tts_url = None
     indic_tts_token = None
     tir_client = None
@@ -84,6 +85,11 @@ if os.getenv('LLAMA_33_70B_BASE_URL') and os.getenv('LLAMA_33_70B_API_KEY') and 
     FactoryConfig.llama_33_70b_client = OpenAI(base_url=os.getenv('LLAMA_33_70B_BASE_URL')
                                         ,api_key=os.getenv('LLAMA_33_70B_API_KEY'))
     FactoryConfig.production = True
+
+if FactoryConfig.production and os.getenv('LLAMA_31_405B_BASE_URL'):
+    FactoryConfig.llama_31_405b_client = OpenAI(
+        base_url=os.getenv('LLAMA_31_405B_BASE_URL'), api_key=os.getenv('LLAMA_33_70B_API_KEY') # as same api key will work
+    )
 
 # Telugu & Marathi pending for now, as no tts model integrated for these two.
 

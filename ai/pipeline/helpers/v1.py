@@ -11,7 +11,7 @@ sys.path.append('.')
 from schemas.messages import MLResponse, MLRequest
 
 from factory.config import FactoryConfig
-from factory.constants import ENGLISH, HINDI, LLAMA_33_70B_ID, MARATHI, TELUGU
+from factory.constants import ENGLISH, HINDI, LLAMA_33_70B_ID, MARATHI, TELUGU, LLAMA_31_405B_ID
 from utils.vectorstores.weav8 import WeaviateCollectionClient
 from utils.stt.whisper import speech_to_text
 from utils.stt.e2e.whisper import get_text
@@ -70,10 +70,25 @@ def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLI
         temperature=0.0,
         max_tokens=1024,
         top_p=1,
-        frequency_penalty=0.1,
-        presence_penalty=0.1
+        frequency_penalty=0.2,
+        presence_penalty=0.2
     )
     print('llama 33 70b call no streaming response: ', response)
+    return response.choices[0].message.content if response.choices and response.choices[0].message else {}
+
+
+def _handle_llama_31_405b_call_no_streaming(messages, breakpoints, language=ENGLISH):
+    print('Executing llama 31 405b call no streaming')
+    response = FactoryConfig.llama_31_405b_client.chat.completions.create(
+        model=LLAMA_31_405B_ID,
+        messages=messages,
+        temperature=0.0,
+        max_tokens=1024,
+        top_p=1,
+        frequency_penalty=0.0,
+        presence_penalty=0.0
+    )
+    print('llama 31 405b call no streaming response: ', response)
     return response.choices[0].message.content if response.choices and response.choices[0].message else {}
 
 
@@ -145,6 +160,8 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
                                                 embeddings=FactoryConfig.embeddings)
         coll_client.load_collection()
         results = coll_client.query(query=text, top_k=5)
+        
+        print(results)
 
         messages = [
             FactoryConfig.llm.create_message(
@@ -206,10 +223,6 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
         if message:
             text = message
 
-        coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
-                                                embeddings=FactoryConfig.embeddings)
-        coll_client.load_collection()
-        results = coll_client.query(query=text, top_k=5)
         
         messages = [
             FactoryConfig.llm.create_message(
@@ -224,7 +237,33 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
         ]
         
         breakpoints = _get_breakpoints(language)
-        response = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        
+        temp_messages = [messages[0]]
+        for msg in history[1:]:
+            if msg.get('role') == 'assistant':
+                temp_content = msg.get('content')[:20]
+                temp_messages.append({
+                    'role': msg.get('role'),
+                    'content': temp_content
+                })
+            elif msg.get('role') == 'user':
+                temp_messages.append(msg)
+        
+        
+        for message in messages[1:]:
+            if message.get('role') == 'assistant':
+                temp_content = message.get('content')[:20]
+                temp_messages.append({
+                    'role': message.get('role'),
+                    'content': temp_content
+                })
+            else:
+                temp_messages.append(message)
+        # response = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        
+        print("temporary messages; ", temp_messages)
+        
+        response = _handle_llama_31_405b_call_no_streaming(messages=temp_messages, breakpoints=breakpoints, language=language)
         l_index = response.find('{')
         r_index = response.rfind('}')
         try:
@@ -239,6 +278,8 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
             text = contextualized_query
         else:
             text = message
+        
+        
 
         coll_client = WeaviateCollectionClient(db_client=FactoryConfig.vector_db_client, name='gov_schemes',
                                                 embeddings=FactoryConfig.embeddings)

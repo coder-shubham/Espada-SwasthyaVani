@@ -21,3 +21,4 @@ LLAMA_31_8B_ID = 'llama3.1:8b'
 CREDITS_CAN_BE_CONSUMED_NOW='75beef74-39c7-4937-b3d5-ebeac08cbf65'
 
 LLAMA_33_70B_ID = 'llama_3_3_70b_instruct_fp8'
+LLAMA_31_405B_ID = 'llama_3_1_405b_instruct'
