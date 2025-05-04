@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     E2E_TIR_API_KEY: str = os.getenv("E2E_TIR_API_KEY", "")
     E2E_TIR_PROJECT_ID: str = os.getenv("E2E_TIR_PROJECT_ID", "")
     E2E_TIR_TEAM_ID: str = os.getenv("E2E_TIR_TEAM_ID", "")
+    LLAMA_31_405B_BASE_URL: str = os.getenv("LLAMA_31_405B_BASE_URL", "")
 
     class Config:
         env_file = ".env"
