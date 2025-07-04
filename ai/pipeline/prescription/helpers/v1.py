@@ -18,6 +18,8 @@ from utils.stt.whisper import speech_to_text
 from utils.stt.e2e.whisper import get_text
 from utils.tts.indic import get_audio_using_tts
 
+from pipeline.helpers.v1 import _handle_llama_31_405b_call_no_streaming, _handle_llama_31_405b_call
+
 from playsound3 import playsound
 
 import soundfile as sf
@@ -166,7 +168,8 @@ def text_stream_prescription(session_id, audio=None, message=None, language=ENGL
         ]
 
         breakpoints = _get_breakpoints(language)
-        prescription = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        # prescription = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        prescription = _handle_llama_31_405b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
         
         PRESCRIPTION_QNA_SYSTEM_PROMPT = f"""You are a helpful prescription based QnA assistant, who answers queries on the basis of prescription provided. You need to respond in {FactoryConfig.language_name[language]} language only. You will be given a prescription and some questions can be asked after it; you need to answer the queries in {FactoryConfig.language_name[language]} language only.
         Instructions:
@@ -216,7 +219,7 @@ def text_stream_prescription(session_id, audio=None, message=None, language=ENGL
         assistant_response = str()
 
         if FactoryConfig.production:
-            for txt_chunk, is_finished in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints,
+            for txt_chunk, is_finished in _handle_llama_31_405b_call(messages=messages, breakpoints=breakpoints,
                                                                     language=language):
                 assistant_response += txt_chunk
                 if is_finished:
@@ -235,7 +238,7 @@ def text_stream_prescription(session_id, audio=None, message=None, language=ENGL
                 yield txt_chunk, is_finished
                 
         else:
-            for txt_chunk, is_finished in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints,
+            for txt_chunk, is_finished in _handle_llama_31_405b_call(messages=messages, breakpoints=breakpoints,
                                                                             language=language):
                 assistant_response += txt_chunk
                 if is_finished:

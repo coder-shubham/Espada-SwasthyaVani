@@ -15,7 +15,7 @@ from factory.config import FactoryConfig, ENGLISH, HINDI, TELUGU, MARATHI
 from pipeline.triage.helpers.v1 import get_follow_up_text_response, _handle_llama_33_70b_call_no_streaming, \
     _get_breakpoints
 from pipeline.triage.helpers.v1 import respond_back_in_audio_streaming_followup, audio_followup, text_stream_followup
-from pipeline.helpers.v1 import audio_stream, text_stream, respond_back_in_audio_streaming, get_text_response
+from pipeline.helpers.v1 import audio_stream, text_stream, respond_back_in_audio_streaming, get_text_response, _handle_llama_31_405b_call_no_streaming, _handle_llama_31_405b_call
 from pipeline.prescription.helpers.v1 import respond_back_in_audio_streaming_prescription, get_text_response_prescription
 
 from utils.stt.e2e.whisper import get_text
@@ -38,7 +38,7 @@ Examples:
 User: Hi, I hope you're doing well!
 Assistant: greeting
 
-User: Can you tell me about the Ayushman Bharat scheme?
+User: Can you tell me about the Aayushman Bharat scheme?
 Assistant: scheme_info
 
 User: I’ve been having chest pain and shortness of breath for two days.
@@ -111,7 +111,7 @@ def get_intent(session_id, text):
             FactoryConfig.llm.create_message(role="user", content=text),
         ]
         breakpoints = _get_breakpoints(language=ENGLISH)
-        response = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=ENGLISH)
+        response = _handle_llama_31_405b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=ENGLISH)
 
         if 'greeting' in response:
             intent = GREETING_INTENT
@@ -143,7 +143,7 @@ def get_audio_intent(session_id, audio_path, language):
             FactoryConfig.llm.create_message(role="user", content=text),
         ]
         breakpoints = _get_breakpoints(language=ENGLISH)
-        response = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=ENGLISH)
+        response = _handle_llama_31_405b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=ENGLISH)
         if 'greeting' in response:
             intent = GREETING_INTENT
         elif 'scheme_info' in response:

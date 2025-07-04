@@ -69,7 +69,7 @@ def _handle_llama_33_70b_call_no_streaming(messages, breakpoints, language=ENGLI
         messages=messages,
         temperature=0.0,
         max_tokens=1024,
-        top_p=1,
+        top_p=0.5,
         frequency_penalty=0.2,
         presence_penalty=0.2
     )
@@ -84,12 +84,42 @@ def _handle_llama_31_405b_call_no_streaming(messages, breakpoints, language=ENGL
         messages=messages,
         temperature=0.0,
         max_tokens=1024,
-        top_p=1,
+        top_p=0.5,
         frequency_penalty=0.0,
         presence_penalty=0.0
     )
     print('llama 31 405b call no streaming response: ', response)
     return response.choices[0].message.content if response.choices and response.choices[0].message else {}
+
+
+def _handle_llama_31_405b_call(messages, breakpoints, language=ENGLISH):
+    curr_chunk = str()
+    iterable = FactoryConfig.llama_31_405b_client.chat.completions.create(
+        model=LLAMA_31_405B_ID,
+        messages=messages,
+        temperature=0.0,
+        max_tokens=1024,
+        top_p=0.5,
+        frequency_penalty=0.1,
+        presence_penalty=0.1,
+        stream=True
+    )
+    last = None
+
+    for chunk in iterable:
+        if chunk.choices and chunk.choices[0].delta.content is not None:
+            curr_chunk += chunk.choices[0].delta.content
+
+            if any(item in curr_chunk for item in breakpoints):
+                curr_chunk = curr_chunk.replace('*', '')
+                if not last:
+                    pass
+                else:
+                    yield last, False
+                last = curr_chunk
+                curr_chunk = str()
+
+    yield last, True
 
 
 def _handle_llama_33_70b_call(messages, breakpoints, language=ENGLISH):
@@ -178,7 +208,7 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
         txt_chunk, is_finished = None, None
 
         if FactoryConfig.production:
-            for txt_chunk, is_finished in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints,
+            for txt_chunk, is_finished in _handle_llama_31_405b_call(messages=messages, breakpoints=breakpoints,
                                                                     language=language):
                 assistant_response += txt_chunk
                 if is_finished:
@@ -195,7 +225,7 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
                 
                 yield txt_chunk, is_finished
         else:
-            for txt_chunk, is_finished in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints,
+            for txt_chunk, is_finished in _handle_llama_31_405b_call(messages=messages, breakpoints=breakpoints,
                                                                             language=language):
                 assistant_response += txt_chunk
                 if is_finished:
@@ -292,14 +322,14 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
         messages = [
             FactoryConfig.llm.create_message(
                 role="system",
-                content=f"You are a helpful medical scheme female assistant. You answer concisely and briefly in {FactoryConfig.language_name[language]} language only. You will be given a query and some context, whatever the language of the query is, respond the answer in {FactoryConfig.language_name[language]} language only. If the query is not related to the context, respond in conversational medical agent manner, If query is related to context then use the context to answer the query. Keep the response brief.",
+                content=f"You are a helpful medical scheme female assistant. You answer concisely and briefly in {FactoryConfig.language_name[language]} language only. You will be given a query and some context. Regardless of the query's language, respond only in {FactoryConfig.language_name[language]} language. If the query is related to the context, use the context to answer it. However, if the query is not related to the context, do not generate any answer — simply respond with: 'Sorry, couldn't find any answer to your query.'"
             ),
             FactoryConfig.llm.create_message(role="user",
                                                 content=f"Query: {text}. ** Context (provided by external tool, not provided by the user): {_prepare_context(results)} **. Respond in {FactoryConfig.language_name[language]} language only"),
         ]
 
         if FactoryConfig.production:
-            for txt_chunk, is_finished in _handle_llama_33_70b_call(messages=messages, breakpoints=breakpoints,
+            for txt_chunk, is_finished in _handle_llama_31_405b_call(messages=messages, breakpoints=breakpoints,
                                                                     language=language):
                 assistant_response += txt_chunk
                 if is_finished:
@@ -318,7 +348,7 @@ def text_stream(session_id, audio=None, message=None, language=ENGLISH):
                 yield txt_chunk, is_finished
                 
         else:
-            for txt_chunk, is_finished in _handle_local_llama_31_8b_call(messages=messages, breakpoints=breakpoints,
+            for txt_chunk, is_finished in _handle_llama_31_405b_call(messages=messages, breakpoints=breakpoints,
                                                                             language=language):
                 assistant_response += txt_chunk
                 if is_finished:

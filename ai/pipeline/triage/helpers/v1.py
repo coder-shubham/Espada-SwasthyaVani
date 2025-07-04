@@ -15,7 +15,7 @@ from factory.constants import HINDI, ENGLISH
 from utils.stt.whisper import speech_to_text
 from utils.stt.e2e.whisper import get_text
 from pipeline.triage.prompts.v1 import SYSTEM_PROMPT_FOLLOWUP, SPECIALIZATION_FILTER_PROMPT
-from pipeline.helpers.v1 import _get_breakpoints, _handle_llama_33_70b_call, _handle_local_llama_31_8b_call, _handle_llama_33_70b_call_no_streaming
+from pipeline.helpers.v1 import _get_breakpoints, _handle_llama_33_70b_call, _handle_local_llama_31_8b_call, _handle_llama_33_70b_call_no_streaming, _handle_llama_31_405b_call_no_streaming
 from utils.vectorstores.weav8 import WeaviateCollectionClient
 from utils.tts.indic import get_audio_using_tts
 from collections import Counter
@@ -68,7 +68,8 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
     breakpoints = _get_breakpoints(language)
     
     if FactoryConfig.production:
-        result = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        result = _handle_llama_31_405b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        # result = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
         
     
     l_index = result.find('{')
@@ -121,7 +122,8 @@ def text_stream_followup(session_id, audio=None, message=None, language=ENGLISH)
             FactoryConfig.llm.create_message(role="user", content=f"Symptoms: {symptoms}"),
         ]
         
-        filter_result = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        # filter_result = _handle_llama_33_70b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
+        filter_result = _handle_llama_31_405b_call_no_streaming(messages=messages, breakpoints=breakpoints, language=language)
         
         l_index = filter_result.find('{')
         r_index = filter_result.rfind('}')
